@@ -1,0 +1,23 @@
+question, answer, false_answer_1, false_answer_2
+En phase de poule: Matchs en combien de points?, 13 points, 11 points, 12 points
+Combien de temps-morts par équipe?, 2, 1, 3
+Combien de temps durent les temps-morts, 2 min, 1 min, 3 min
+En phase de classement: Matchs en combien de points?, 15 points, 13 points, 17 points
+En fin de matchs, cap +1 systématique, 1 points d'écart, 2 points d'écarts
+Si un adversaire nous fais la passe dans son en-but, On marque le point, On ne marque pas le point
+Lors d'un catch par un attaquant et un défenseur en même temps:, L'attaquant conserve le frisbee, Le défenseur conserve le frisbee
+Lors d'une réception en course: combien de pas peut-on faire avant de s'arrêter,5 ,6 , 7
+Qui peut appeler un temps-mort?, Le joueur en possession du frisbee, Les jeunes coachs, N'importe qui
+Après un temps-mort, On peut changer de joueurs, On ne peut pas changer de joueurs
+Après un temps-mort, Les attaquants se placent où ils veulent, Les attaquant conservent leur position
+Après un temps-mort, Les défenseurs se palcent où ils veulent, Les défenseurs conservent leur position
+Après un temps-mort, Le compte reprends où il s'était arrêté, Le compte reprends à 0
+Lors de l'engagement: les attaquant (ceux qui recoivent le disque), Ont un pieds sur la zone dligne de la zone d'en-but, Doivent être entièrement dans l'en-but
+Lors de l'engagement: les défenseurs (ceux qui lancent le disque), Doivent être entièrement dans l'en-but, Ont un pieds sur la zone dligne de la zone d'en-but
+Lorsqu'un frisbee roule: qui peut l'arrêter?, N'importe qui, Le joueur qui va prendre le frisbe pour le lancer, Les défenseurs
+On appelle le brick, Avant de récupérer le frisbee, Une fois qu'on a récupéré le frisbee
+Lorsque le défenseur compte trop rapidement:, On appelle Fast Count, On met une droite au défenseur, On tire rapidement
+Quand appelle-t-on "Strip", Quand un défenseur arrache le frisbee à l'attaquant, Lorsque le défenseur entre en contact avec le lanceur avant le lancer et hors de l'acte de lancer
+Quand appelle-t-on "Délai de jeu", Lorsque l'attaquant qui doit reprendre le jeu ne le fait pas immédiatement, Lorsqu'une équipe fait durée trop longtemps un temps mort
+Quand appelle-t-on "Contact", Lorsque le défenseur entre en contact avec le lanceur avant le lancer et hors de l'acte de lancer, Quand un défenseur arrache le frisbee à l'attaquant
+
