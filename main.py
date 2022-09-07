@@ -18,12 +18,13 @@ import commands.legende
 import commands.pool
 import commands.fool
 import commands.embed
+import commands.ultimate_quizz
 
-creation = True
-if creation is True:
-    @bot.event
-    async def on_ready():
-        await bot.tree.sync()
+
+@bot.event
+async def on_ready():
+    print("Sync")
+    await bot.tree.sync(guild = discord.Object(id=769911179547246592))
 
 with open("token.txt") as f:
     TOKEN = str(f.readlines()).replace("['", "").replace("']", "")
