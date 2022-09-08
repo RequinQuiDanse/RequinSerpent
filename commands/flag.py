@@ -53,7 +53,6 @@ class flagView(discord.ui.View):
                 line = 0
                 for row in csv_reader:
                     if line == randomResult:
-                        flag = f"https://flagcdn.com/256x192/{row['shortname']}.png"
                         realFlagName = row['realname']
                     elif line == randomFaux1:
                         falseflagName1 = row['realname']

@@ -1,29 +1,34 @@
 question,answer,false_answer_1,false_answer_2
-En phase de poule: Matchs en combien de points?, 13 points, 11 points, 12 points
-Combien de temps-morts par équipe?, 2, 1, 3
-Combien de temps durent les temps-morts, 2 min, 1 min, 3 min
-En phase de classement: Matchs en combien de points?, 15 points, 13 points, 17 points
-En fin de matchs, cap +1 systématique, 1 points d'écart, 2 points d'écarts
-Si un adversaire nous fais la passe dans son en-but, On marque le point, On ne marque pas le point
-Lors d'un catch par un attaquant et un défenseur en même temps:, L'attaquant conserve le frisbee, Le défenseur conserve le frisbee
-Lors d'une réception en course: combien de pas peut-on faire avant de s'arrêter,5 ,6 , 7
-Qui peut appeler un temps-mort?, Le joueur en possession du frisbee, Les jeunes coachs, N'importe qui
-Après un temps-mort, On ne peut pas changer de joueurs, On peut changer de joueurs
-Après un temps-mort, Les attaquants se placent où ils veulent, Les attaquant conservent leur position
-Après un temps-mort, Les défenseurs se palcent où ils veulent, Les défenseurs conservent leur position
-Après un temps-mort, Le compte reprends où il s'était arrêté, Le compte reprends à 0
-Lors de l'engagement: les attaquant (ceux qui recoivent le disque), Ont un pieds sur la zone dligne de la zone d'en-but, Doivent être entièrement dans l'en-but
-Lors de l'engagement: les défenseurs (ceux qui lancent le disque), Doivent être entièrement dans l'en-but, Ont un pieds sur la ligne de la zone d'en-but
-Lorsqu'un frisbee roule: qui peut l'arrêter?, N'importe qui, Le joueur qui va prendre le frisbee pour le lancer, Les défenseurs
-On appelle le brick, Avant de récupérer le frisbee, Une fois qu'on a récupéré le frisbee
-Lorsque le défenseur compte trop rapidement:, On appelle Fast Count, On met une droite au défenseur, On tire rapidement
-Quand appelle-t-on "Strip", Quand un défenseur arrache le frisbee à l'attaquant, Lorsque le défenseur entre en contact avec le lanceur avant le lancer et hors de l'acte de lancer
-Quand appelle-t-on "Délai de jeu", Lorsque l'attaquant qui doit reprendre le jeu ne le fait pas immédiatement, Lorsqu'une équipe fait durée trop longtemps un temps mort
-Quand appelle-t-on "Contact", Lorsque le défenseur entre en contact avec le lanceur avant le lancer et hors de l'acte de lancer, Quand un défenseur arrache le frisbee à l'attaquant
-Les lignes de touche et les lignes de fond :, ne font pas partie de l’aire de jeu, font partie de l’aire de jeu
-Après un « turnover » l'endroit du « turnover » est l’endroit où:, Le disque s’est arrêté, Le disque tombe
-Le marqueur peut commencer et continuer un compte :, Que lorsqu’il est à une distance de moins de trois (3) mètres du lanceur, Même s’il est à plus de 3 mètres
-Après une faute un « check » doit être établi pour remettre le disque en jeu: qui a le droit de bouger avant le check?, Personne, Les défenseurs, Les attaquants
-Marcher avec le disque est une infraction :, L’attaquant conserve la possession du disque mais doit refaire sa passe en repositionnant son pied pivot au bon endroit, L’attaquant perd la possession du disque
-Lorsqu’un joueur touche le disque en vol lors de l’engagement et qu’il tombe ensuite :, Il y a changement de possession, La reprise de jeu se fait normalement, On recommence l’engagement
-Si le disque tombe en dehors des limites du terrain en survolant un des côtés de la zone de jeu :, L’attaquant doit établir son pied pivot à l’endroit où est sorti le disque,  L’attaquant peut prendre possession du disque soit là où le disque est sorti soit sur la croix de brick, L’attaquant doit positionner son pied pivot à l’endroit du brick
+En phase de poule: Matchs en combien de points?,13 points,11 points,12 points
+Combien de temps-morts par équipe?,2,1,3
+Combien de temps durent les temps-morts,2 min,1 min,3 min
+En phase de classement: Matchs en combien de points?,15 points,13 points,17 points
+En fin de match,cap +1 systématique,1 points d'écart,2 points d'écarts
+Si un adversaire nous fais la passe dans son en-but,On marque le point,On ne marque pas le point
+Lors d'un catch par un attaquant et un défenseur en même temps:,L'attaquant conserve le frisbee,Le défenseur conserve le frisbee
+Lors d'une réception en course: combien de pas peut-on faire avant de s'arrêter,5 ,6 ,7
+Qui peut appeler un temps-mort?,Le joueur en possession du frisbee,Les jeunes coachs,N'importe qui
+Après un temps-mort,On ne peut pas changer de joueurs,On peut changer de joueurs
+Après un temps-mort,Les attaquants se placent où ils veulent,Les attaquant conservent leur position
+Après un temps-mort,Les défenseurs se palcent où ils veulent,Les défenseurs conservent leur position
+Après un temps-mort,Le compte reprends où il s'était arrêté,Le compte reprends à 0
+Lors de l'engagement: les attaquant (ceux qui recoivent le disque),Ont un pieds sur la zone dligne de la zone d'en-but,Doivent être entièrement dans l'en-but
+Lors de l'engagement: les défenseurs (ceux qui lancent le disque),Doivent être entièrement dans l'en-but,Ont un pieds sur la ligne de la zone d'en-but
+Lorsqu'un frisbee roule: qui peut l'arrêter?,N'importe qui,Le joueur qui va prendre le frisbee pour le lancer,Les défenseurs
+On appelle le brick,Avant de récupérer le frisbee,Une fois qu'on a récupéré le frisbee
+Lorsque le défenseur compte trop rapidement:,On appelle Fast Count,On met une droite au défenseur,On tire rapidement
+Quand appelle-t-on "Strip",Quand un défenseur arrache le frisbee à l'attaquant,Lorsque le défenseur entre en contact avec le lanceur avant le lancer et hors de l'acte de lancer
+Quand appelle-t-on "Délai de jeu",Lorsque l'attaquant qui doit reprendre le jeu ne le fait pas immédiatement,Lorsqu'une équipe fait durée trop longtemps un temps mort
+Quand appelle-t-on "Contact",Lorsque le défenseur entre en contact avec le lanceur avant le lancer et hors de l'acte de lancer,Quand un défenseur arrache le frisbee à l'attaquant
+Les lignes de touche et les lignes de fond :,ne font pas partie de l’aire de jeu,font partie de l’aire de jeu
+Après un « turnover » l'endroit du « turnover » est l’endroit où:,Le disque s’est arrêté,Le disque tombe
+Le marqueur peut commencer et continuer un compte :,Que lorsqu’il est à une distance de moins de trois (3) mètres du lanceur,Même s’il est à plus de 3 mètres
+Après une faute un « check » doit être établi pour remettre le disque en jeu: qui a le droit de bouger avant le check?,Personne,Les défenseurs,Les attaquants
+Marcher avec le disque est une infraction :,L’attaquant conserve la possession du disque mais doit refaire sa passe en repositionnant son pied pivot au bon endroit,L’attaquant perd la possession du disque
+Lorsqu’un joueur touche le disque en vol lors de l’engagement et qu’il tombe ensuite :,Il y a changement de possession,La reprise de jeu se fait normalement,On recommence l’engagement
+L’attaquant qui réceptionne le disque dans sa zone d’en-but lors de l’engagement :,Doit jouer le disque de l’endroit où il l’a réceptionné,Doit établir son pied pivot sur la ligne d’en-but,Peut choisir s’il joue le disque du point de réception ou s’il vient établir son pied pivot sur la ligne d’en-but
+Il y a point si :,Si le joueur finit sa course hors de la zone d’en-but mais que son premier appui était dedans,Si un joueur après avoir attrapé le frisbee sur la ligne d’en-but finit sa course dans la zone de marque,Si un joueur réceptionne le disque avec deux appuis simultanés en dehors et à l’intérieur de la zone d’en-but
+« Double team » (double marquage) signifie :,Qu’un défenseur autre que le marqueur est à moins de trois (3) mètres du point pivot du lanceur sans être au marquage d'un autre attaquant.,Que le marqueur est trop proche du disque,Que le marqueur compte trop vite
+Temps limite pour effectuer un engagement :,L’attaque dispose de 45 secondes pour se placer sur sa ligne d’en-but,La Défense et l’attaque disposent du même temps pour se placer : 45 secondes,La défense dispose de 30 secondes pour se placer
+
+Si le disque tombe en dehors des limites du terrain en survolant un des côtés de la zone de jeu :,L’attaquant doit établir son pied pivot à l’endroit où est sorti le disque,L’attaquant peut prendre possession du disque soit là où le disque est sorti soit sur la croix de brick,L’attaquant doit positionner son pied pivot à l’endroit du brick

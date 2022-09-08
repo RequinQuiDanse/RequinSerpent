@@ -62,7 +62,7 @@ class addPlaylistModal(discord.ui.Modal, title='Add playlist'):
                 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
                 api_service_name = "youtube"
                 api_version = "v3"
-                client_secrets_file = "playlist\secretapi.json"
+                client_secrets_file = "playlist\code_secret_client.json.json"
                 creds = None
                 # the file token.pickle stores the user's access and refresh tokens, and is
                 # created automatically when the authorization flow completes for the first time
@@ -100,7 +100,7 @@ class addPlaylistModal(discord.ui.Modal, title='Add playlist'):
                 # *DO NOT* leave this option enabled in production.
                 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
-                client_secrets_file = "playlist\secretapi.json"
+                client_secrets_file = "playlist\code_secret_client.json.json"
 
                 # Get credentials and create an API client => déjà fait dans la fonction d'avant l.30
                 # flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
