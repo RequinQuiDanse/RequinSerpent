@@ -24,7 +24,7 @@ import commands.ultimate_quizz
 @bot.event
 async def on_ready():
     print("Sync")
-    await bot.tree.sync(guild = discord.Object(id=769911179547246592))
+    await bot.tree.sync()
 
 with open("token.txt") as f:
     TOKEN = str(f.readlines()).replace("['", "").replace("']", "")
