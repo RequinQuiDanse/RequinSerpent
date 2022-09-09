@@ -11,5 +11,4 @@ import time
 
 @bot.command()
 async def parle(ctx):
-    print(glob.glob("playlist/*.csv")) 
     await ctx.reply('Un flip oui chef!')

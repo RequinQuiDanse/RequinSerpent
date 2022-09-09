@@ -4,7 +4,7 @@ import csv
 
 
 class flagView(discord.ui.View):
-    def __init__(self, userId, realFlagName, flagsOrder, embed, errorCounter, tourCounter, avatar):
+    def __init__(self, userId, realFlagName, flagsOrder, embed, errorCounter, tourCounter, avatar, question_used):
         self.userId = userId
         self.realFlagName = realFlagName
         self.flagsOrder = flagsOrder
@@ -13,6 +13,7 @@ class flagView(discord.ui.View):
         self.errorCounter = errorCounter
         self.tourCounter = tourCounter
         self.avatar = avatar
+        self.question_used = question_used # Pour éviter les répétitions
         super().__init__(timeout=180)
         self.brain()
 
@@ -41,6 +42,9 @@ class flagView(discord.ui.View):
             with open(r'csv_files\flag.csv', mode='r') as csv_file:
                 csv_reader = csv.DictReader(csv_file)
                 randomResult = random.randint(1, 258)
+                # On évite les répétitions
+                while str(randomResult) == self.question_used:
+                    randomResult = random.randint(1, 31)
                 randomFaux1 = random.randint(1, 258)
                 if randomFaux1 == randomResult:
                     randomFaux1 = random.randint(1, 258)
@@ -53,6 +57,7 @@ class flagView(discord.ui.View):
                 line = 0
                 for row in csv_reader:
                     if line == randomResult:
+                        flag = f"https://flagcdn.com/256x192/{row['shortname']}.png"
                         realFlagName = row['realname']
                     elif line == randomFaux1:
                         falseflagName1 = row['realname']
@@ -65,8 +70,9 @@ class flagView(discord.ui.View):
                                 falseflagName2, falseflagName3]
                 flagsOrder = random.sample(allFlagsNames, len(allFlagsNames))
                 self.tourCounter += 1
+                self.question_used.append(str(randomResult))
                 embed = discord.Embed(title=f"Flag Quizz   ```{self.tourCounter - self.errorCounter} sur {self.tourCounter}```").set_image(url=flag)
-                await interaction.response.edit_message(view=flagView(self.userId, realFlagName, flagsOrder, embed, self.errorCounter, self.tourCounter, self.avatar), embed=embed)
+                await interaction.response.edit_message(view=flagView(self.userId, realFlagName, flagsOrder, embed, self.errorCounter, self.tourCounter, self.avatar, self.question_used), embed=embed)
         count = 0
         if response == self.realFlagName:
             self.bon = True
@@ -97,9 +103,9 @@ class flagView(discord.ui.View):
         await interaction.response.edit_message(view=self, embed=self.embed)
 
 
-
 @bot.tree.command(guild = discord.Object(id=769911179547246592), description="Flag Quizz (base de donnée avec 258 drapeaux!)")
 async def flag(interaction: discord.Interaction):
+    question_used = []
     with open(r'csv_files\flag.csv', mode='r') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         randomResult = random.randint(1, 258)
@@ -131,5 +137,6 @@ async def flag(interaction: discord.Interaction):
         errorCounter = 0
         tourCounter = 0
     avatar = interaction.user.avatar
+    question_used.append(str(randomResult))
     ctx = await commands.Context.from_interaction(interaction)
-    await interaction.response.send_message(view=flagView(ctx.author.id, realFlagName, flagsOrder, embed, errorCounter, tourCounter, avatar), embed=embed)
+    await interaction.response.send_message(view=flagView(ctx.author.id, realFlagName, flagsOrder, embed, errorCounter, tourCounter, avatar, question_used), embed=embed)

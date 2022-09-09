@@ -10,9 +10,9 @@ Lors d'une réception en course: combien de pas peut-on faire avant de s'arrête
 Qui peut appeler un temps-mort?,Le joueur en possession du frisbee,Les jeunes coachs,N'importe qui
 Après un temps-mort,On ne peut pas changer de joueurs,On peut changer de joueurs
 Après un temps-mort,Les attaquants se placent où ils veulent,Les attaquant conservent leur position
-Après un temps-mort,Les défenseurs se palcent où ils veulent,Les défenseurs conservent leur position
-Après un temps-mort,Le compte reprends où il s'était arrêté,Le compte reprends à 0
-Lors de l'engagement: les attaquant (ceux qui recoivent le disque),Ont un pieds sur la zone dligne de la zone d'en-but,Doivent être entièrement dans l'en-but
+Après un temps-mort,Les défenseurs se placent où ils veulent,Les défenseurs conservent leur position
+Après un temps-mort le compte reprends,Où il s'était arrêté,À 0
+Lors de l'engagement: les attaquant (ceux qui recoivent le disque),Ont un pieds sur la ligne de la zone d'en-but,Doivent être entièrement dans l'en-but
 Lors de l'engagement: les défenseurs (ceux qui lancent le disque),Doivent être entièrement dans l'en-but,Ont un pieds sur la ligne de la zone d'en-but
 Lorsqu'un frisbee roule: qui peut l'arrêter?,N'importe qui,Le joueur qui va prendre le frisbee pour le lancer,Les défenseurs
 On appelle le brick,Avant de récupérer le frisbee,Une fois qu'on a récupéré le frisbee
@@ -29,6 +29,6 @@ Lorsqu’un joueur touche le disque en vol lors de l’engagement et qu’il tom
 L’attaquant qui réceptionne le disque dans sa zone d’en-but lors de l’engagement :,Doit jouer le disque de l’endroit où il l’a réceptionné,Doit établir son pied pivot sur la ligne d’en-but,Peut choisir s’il joue le disque du point de réception ou s’il vient établir son pied pivot sur la ligne d’en-but
 Il y a point si :,Si le joueur finit sa course hors de la zone d’en-but mais que son premier appui était dedans,Si un joueur après avoir attrapé le frisbee sur la ligne d’en-but finit sa course dans la zone de marque,Si un joueur réceptionne le disque avec deux appuis simultanés en dehors et à l’intérieur de la zone d’en-but
 « Double team » (double marquage) signifie :,Qu’un défenseur autre que le marqueur est à moins de trois (3) mètres du point pivot du lanceur sans être au marquage d'un autre attaquant.,Que le marqueur est trop proche du disque,Que le marqueur compte trop vite
-Temps limite pour effectuer un engagement :,L’attaque dispose de 45 secondes pour se placer sur sa ligne d’en-but,La Défense et l’attaque disposent du même temps pour se placer : 45 secondes,La défense dispose de 30 secondes pour se placer
+Temps limite pour effectuer un engagement :,L’attaque: 45 sec; Défense: 60 secondes,La Défense et l’Attaque disposent du même temps pour se placer: 45 secondes,La Défense: 45 sec pour se placer; L'Attaque: 60 sec
 
 Si le disque tombe en dehors des limites du terrain en survolant un des côtés de la zone de jeu :,L’attaquant doit établir son pied pivot à l’endroit où est sorti le disque,L’attaquant peut prendre possession du disque soit là où le disque est sorti soit sur la croix de brick,L’attaquant doit positionner son pied pivot à l’endroit du brick

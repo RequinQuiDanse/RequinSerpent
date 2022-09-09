@@ -6,22 +6,27 @@ import csv
 emoji = ["🇦", "🇧", "🇨"]
 
 # Class qui va définir le fonctionnement de l'object qu'est le message avec les questions réponses
+
+
 class Ultimate_View(discord.ui.View):
-    def __init__(self, userId, real_answer, answer_order, embed, errorCounter, tourCounter, avatar):
-        self.userId = userId # user Id pour empêcher que qlq d'autre rep
-        self.real_answer = real_answer # stock la bonne rep
-        self.answer_order = answer_order # stock la bonne et les mauvaises rép aléatoirement
+    def __init__(self, userId, real_answer, answer_order, embed, errorCounter, tourCounter, avatar, question_used):
+        self.userId = userId  # user Id pour empêcher que qlq d'autre rep
+        self.real_answer = real_answer  # stock la bonne rep
+        # stock la bonne et les mauvaises rép aléatoirement
+        self.answer_order = answer_order
         self.embed = embed  # le contenue textuel du message
-        self.bon = True # permet de compter les points
-        self.errorCounter = errorCounter # permet de compter les points
-        self.tourCounter = tourCounter # permet de compter les points
-        self.avatar = avatar # pour le style, à la fin du questionnaire ça affiche l'avatar de l'utilisateur
+        self.bon = True  # permet de compter les points
+        self.errorCounter = errorCounter  # permet de compter les points
+        self.tourCounter = tourCounter  # permet de compter les points
+        # pour le style, à la fin du questionnaire ça affiche l'avatar de l'utilisateur
+        self.avatar = avatar
+        # Pour ne pas répéter les questions déjà utilisées
+        self.question_used = question_used
         super().__init__(timeout=180)
         self.brain()
 
-    def brain(self): # nettoie et redéfini les boutons
+    def brain(self):  # nettoie et redéfini les boutons
         self.clear_items()
-        print(self.tourCounter)
         # ajoute les boutons avec leurs valeurs etc
         self.add_item(discord.ui.Button(
             style=discord.ButtonStyle.blurple, label=emoji[0], custom_id=self.answer_order[0]))
@@ -32,19 +37,19 @@ class Ultimate_View(discord.ui.View):
                 style=discord.ButtonStyle.blurple, label=emoji[2], custom_id=self.answer_order[2]))
 
     async def interaction_check(self, interaction=discord.Interaction):
-        if self.userId != interaction.user.id: # empêche les gens d'utiliser le quizz d'un autre
+        if self.userId != interaction.user.id:  # empêche les gens d'utiliser le quizz d'un autre
             return
         self.clear_items()
         response = interaction.data.get('custom_id')
 
-        if response == 'stop': # Mets fin au quizz
+        if response == 'stop':  # Mets fin au quizz
             self.clear_items()
             self.tourCounter += 1
             embed = discord.Embed(
                 title=f"Ultimate Quizz   ```{self.tourCounter - self.errorCounter} sur {self.tourCounter} gg```").set_image(url=self.avatar)
             await interaction.response.edit_message(embed=embed, view=None)
 
-        if response == 'Suivant': # lance une autre question
+        if response == 'Suivant':  # lance une autre question
             self.tourCounter += 1
             random_file = random.choice(
                 [r"csv_files\ultimate.csv", r"csv_files\ultimate_gestes.csv"])
@@ -56,6 +61,9 @@ class Ultimate_View(discord.ui.View):
                 # Déclaration des questions / réponses si on utilise les questions manuscrites
                 if random_file == r"csv_files\ultimate.csv":
                     randomResult = random.randint(1, 31)
+                    # On évite les répétitions
+                    while str(random_file) + str(randomResult) in self.question_used:
+                        randomResult = random.randint(1, 31)
                     for row in csv_reader:
                         if line == randomResult:
                             question = row['question']
@@ -65,25 +73,33 @@ class Ultimate_View(discord.ui.View):
                         line += 1
                     all_answers = [real_answer, false_answer_1]
                     if str(false_answer_2) != "None":
-                        all_answers = [real_answer, false_answer_1, false_answer_2]
+                        all_answers = [real_answer,
+                                       false_answer_1, false_answer_2]
                     # Change l'ordre des questions
                     answer_order = random.sample(all_answers, len(all_answers))
-                    embed = discord.Embed(title="Ultimate Quizz",
-                                        description=f"**```{question}```**")
-                    embed.add_field(name=emoji[0], value=f"```{answer_order[0]}```", inline=True)
-                    embed.add_field(name=emoji[1], value=f"```{answer_order[1]}```", inline=True)
-                    if str(false_answer_2) != "None": # Mets une 3ème question si il yen a une (pour les questions manuscrites)
+                    embed = discord.Embed(title=f"Ultimate Quizz ```{self.tourCounter - self.errorCounter} sur {self.tourCounter}```",
+                                          description=f"**```{question}```**")
+                    embed.add_field(
+                        name=emoji[0], value=f"```{answer_order[0]}```", inline=True)
+                    embed.add_field(
+                        name=emoji[1], value=f"```{answer_order[1]}```", inline=True)
+                    # Mets une 3ème question si il yen a une (pour les questions manuscrites)
+                    if str(false_answer_2) != "None":
                         embed.add_field(
                             name=emoji[2], value=f"```{answer_order[2]}```", inline=True)
                     if real_answer_link is not None:
-                        embed.set_image(url = real_answer_link)
+                        embed.set_image(url=real_answer_link)
 
-                    avatar = interaction.user.avatar
-                    await interaction.response.edit_message(view=Ultimate_View(self.userId, real_answer, answer_order, embed, self.errorCounter, self.tourCounter, avatar), embed=embed)
+                    self.question_used.append(
+                        str(random_file) + str(randomResult))
+                    await interaction.response.edit_message(view=Ultimate_View(self.userId, real_answer, answer_order, embed, self.errorCounter, self.tourCounter, self.avatar, self.question_used), embed=embed)
 
                 else:  # Si on utilise les images en questions
                     # La questions/réponse que l'on veut
                     randomResult = random.randint(1, 14)
+                    # On évite les répétitions
+                    while str(random_file) + str(randomResult) in self.question_used:
+                        randomResult = random.randint(1, 31)
                     # On prend une autre réponse au hasard
                     randomFaux1 = random.randint(1, 14)
                     while randomFaux1 == randomResult:  # check pour ne pas avoir 2 fois la même réponse
@@ -94,8 +110,8 @@ class Ultimate_View(discord.ui.View):
                     for row in csv_reader:
                         if line == randomResult:
                             question = "Qu'elle est ce signe?"
-                            real_answer_link = row['link']
                             real_answer = row['answer']
+                            real_answer_link = row['link']
                         elif line == randomFaux1:
                             false_answer_1 = row['answer']
                         elif line == randomFaux2:
@@ -103,19 +119,25 @@ class Ultimate_View(discord.ui.View):
                         line += 1
                     all_answers = [real_answer, false_answer_1]
                     if str(false_answer_2) != "None":
-                        all_answers = [real_answer, false_answer_1, false_answer_2]
+                        all_answers = [real_answer,
+                                       false_answer_1, false_answer_2]
                     # Change l'ordre des questions
                     answer_order = random.sample(all_answers, len(all_answers))
-                    embed = discord.Embed(title="Ultimate Quizz",
-                                        description=f"**```{question}```**").set_image(url = real_answer_link)
-                    embed.add_field(name=emoji[0], value=f"```{answer_order[0]}```", inline=True)
-                    embed.add_field(name=emoji[1], value=f"```{answer_order[1]}```", inline=True)
-                    if str(false_answer_2) != "None": # Mets une 3ème question si il yen a une (pour les questions manuscrites)
+                    embed = discord.Embed(title=f"Ultimate Quizz ```{self.tourCounter - self.errorCounter} sur {self.tourCounter}```",
+                                          description=f"**```{question}```**").set_image(url=real_answer_link)
+                    embed.add_field(
+                        name=emoji[0], value=f"```{answer_order[0]}```", inline=True)
+                    embed.add_field(
+                        name=emoji[1], value=f"```{answer_order[1]}```", inline=True)
+                    # Mets une 3ème question si il yen a une (pour les questions manuscrites)
+                    if str(false_answer_2) != "None":
                         embed.add_field(
                             name=emoji[2], value=f"```{answer_order[2]}```", inline=True)
 
-                    avatar = interaction.user.avatar
-                    await interaction.response.edit_message(view=Ultimate_View(self.userId, real_answer, answer_order, embed, self.errorCounter, self.tourCounter, avatar), embed=embed)
+                    self.question_used.append(
+                        str(random_file) + str(randomResult))
+                    print(f"Real answer ligne: {randomResult} / lenght: {real_answer.__len__()}\nfalse answer1 ligne: {randomFaux1} / lenght: {false_answer_1.__len__()}\nfalse answer2 ligne: {randomFaux2} / lenght: {false_answer_2.__len__()}\nfalse answer3 ligne: {randomResult} / lenght: {real_answer.__len__()}")
+                    await interaction.response.edit_message(view=Ultimate_View(self.userId, real_answer, answer_order, embed, self.errorCounter, self.tourCounter, self.avatar, self.question_used), embed=embed)
 
         count = 0
         if response == self.real_answer:
@@ -144,11 +166,20 @@ class Ultimate_View(discord.ui.View):
                     self.add_item(discord.ui.Button(
                         style=discord.ButtonStyle.blurple, label=emoji[count], custom_id=self.answer_order[count]))
                 count += 1
+
+        # await interaction.response.defer()
         await interaction.response.edit_message(view=self, embed=self.embed)
 
+    async def on_error(self, interaction: discord.Interaction, error: Exception, item: discord.ui.Item) -> None:
+        if str(error).__contains__("This interaction has already been responded to before"):
+            print("", end="")
+        # return await super().on_error(interaction, error, item)
 #________________________________________________________________________________________________________________________________#
+
+
 @bot.tree.command(guild=discord.Object(id=769911179547246592), description="Ultimate Quizz (base de donnée avec nos questions!)")
-async def ultimate(interaction: discord.Interaction):
+async def quizz(interaction: discord.Interaction):
+    question_used = []
     random_file = random.choice(
         [r"csv_files\ultimate.csv", r"csv_files\ultimate_gestes.csv"])
     with open(random_file, mode='r', encoding="UTF-8") as csv_file:
@@ -172,20 +203,24 @@ async def ultimate(interaction: discord.Interaction):
             # Change l'ordre des questions
             answer_order = random.sample(all_answers, len(all_answers))
             embed = discord.Embed(title="Ultimate Quizz",
-                                description=f"**```{question}```**")
-            embed.add_field(name=emoji[0], value=f"```{answer_order[0]}```", inline=True)
-            embed.add_field(name=emoji[1], value=f"```{answer_order[1]}```", inline=True)
-            if str(false_answer_2) != "None": # Mets une 3ème question si il yen a une (pour les questions manuscrites)
+                                  description=f"**```{question}```**")
+            embed.add_field(
+                name=emoji[0], value=f"```{answer_order[0]}```", inline=True)
+            embed.add_field(
+                name=emoji[1], value=f"```{answer_order[1]}```", inline=True)
+            # Mets une 3ème question si il yen a une (pour les questions manuscrites)
+            if str(false_answer_2) != "None":
                 embed.add_field(
                     name=emoji[2], value=f"```{answer_order[2]}```", inline=True)
-            if real_answer_link is not None:
-                embed.set_image(url = real_answer_link)
+                print(f"Real answer ligne: {randomResult} / lenght: {real_answer.__len__()}\nfalse answer1 lenght: {false_answer_1.__len__()}\nfalse answer2 lenght: {false_answer_2.__len__()}")
+            print(f"Real answer ligne: {randomResult} / lenght: {real_answer.__len__()}\nfalse answer1 lenght: {false_answer_1.__len__()}")
 
             errorCounter = 0
             tourCounter = 0
             avatar = interaction.user.avatar
+            question_used.append(str(random_file) + str(randomResult))
             ctx = await commands.Context.from_interaction(interaction)
-            await interaction.response.send_message(view=Ultimate_View(ctx.author.id, real_answer, answer_order, embed, errorCounter, tourCounter, avatar), embed=embed)
+            await interaction.response.send_message(view=Ultimate_View(ctx.author.id, real_answer, answer_order, embed, errorCounter, tourCounter, avatar, question_used), embed=embed)
 
         else:  # Si on utilise les images en questions
             # La questions/réponse que l'on veut
@@ -213,15 +248,20 @@ async def ultimate(interaction: discord.Interaction):
             # Change l'ordre des questions
             answer_order = random.sample(all_answers, len(all_answers))
             embed = discord.Embed(title="Ultimate Quizz",
-                                description=f"**```{question}```**").set_image(url = real_answer_link)
-            embed.add_field(name=emoji[0], value=f"```{answer_order[0]}```", inline=True)
-            embed.add_field(name=emoji[1], value=f"```{answer_order[1]}```", inline=True)
-            if str(false_answer_2) != "None": # Mets une 3ème question si il yen a une (pour les questions manuscrites)
+                                  description=f"**```{question}```**").set_image(url=real_answer_link)
+            embed.add_field(
+                name=emoji[0], value=f"```{answer_order[0]}```", inline=True)
+            embed.add_field(
+                name=emoji[1], value=f"```{answer_order[1]}```", inline=True)
+            # Mets une 3ème question si il yen a une (pour les questions manuscrites)
+            if str(false_answer_2) != "None":
                 embed.add_field(
                     name=emoji[2], value=f"```{answer_order[2]}```", inline=True)
 
             errorCounter = 0
             tourCounter = 0
             avatar = interaction.user.avatar
+            question_used.append(str(random_file) + str(randomResult))
             ctx = await commands.Context.from_interaction(interaction)
-            await interaction.response.send_message(view=Ultimate_View(ctx.author.id, real_answer, answer_order, embed, errorCounter, tourCounter, avatar), embed=embed)
+            print(f"Real answer ligne: {randomResult} / lenght: {real_answer.__len__()}\nfalse answer1 ligne: {randomFaux1} / lenght: {false_answer_1.__len__()}\nfalse answer2 ligne: {randomFaux2} / lenght: {false_answer_2.__len__()}\nfalse answer3 ligne: {randomResult} / lenght: {real_answer.__len__()}")
+            await interaction.response.send_message(view=Ultimate_View(ctx.author.id, real_answer, answer_order, embed, errorCounter, tourCounter, avatar, question_used), embed=embed)
