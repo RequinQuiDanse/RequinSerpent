@@ -1,4 +1,5 @@
 import asyncio
+from dis import dis
 import glob
 import re
 import discord
@@ -61,120 +62,93 @@ class Musique():
         pass
 
     @classmethod
-    async def boucle_musique(self, ctx, musique):
+    async def boucle_musique(self, ctx, musique): # Func cerveau
         self.ctx = ctx
         self.choix_musique = str(musique).replace("(", "").replace(")",
                                                                    "").replace("'", "").replace(",", "")
         self.replay = False
         self.random = False
 
+        self.url_musique, self.replay = await self.getUrl(self) # récupère les données de la musique et si la demande est une playlist ou une musique
 
-        self.url_musique, self.replay = await self.getUrl(self)
+        await self.ensure_voice(self) # étape pour bien connecté le bot
 
-        await self.ensure_voice(self)
 
-        try:
-            print(f" choix musique: {self.choix_musique}\n url de la musique: {self.url_musique}\n replay est {self.replay}")
-        except:
-            print(" erreur dans choix musique: {self.choix_musique}\n url de la musique: {self.url_musique}\n replay est {self.replay}")
         player = await YTDLSource.from_url(self.url_musique, loop=bot.loop, stream=True)
+
         try:
-           self.voice.play(player, after=lambda e: print(
+            self.voice.play(player, after=lambda e: print(
                 f'Player error: {e}') if e else None)
         except discord.errors.ClientException as e:
             if str(e) == "Already playing audio.":
                 return
 
         await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=player.title))
-
-        while self.voice.is_playing():
+        while self.voice.is_playing(): # Attend la fin de la musique
             await asyncio.sleep(1)
-        self.voice.stop()
-        await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="Quoi?"))
+        self.voice.stop() # arrête de chanter
+        await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="Quoi?")) # change le statut du bot
 
-        if self.choix_musique == "Aléatoire":
-            self.choix_musique = str(random.choice(glob.glob("playlist/*.csv"))
-                      ).replace("playlist\\", "").replace(".csv", "")
+        if (self.replay): # si on joue une playlist => ça trouve une autre musique et ça rejoue
+            self.url_musique, self.replay = await self.getUrl(self) # cherchage d'une nouvelle musique
 
-            if self.choix_musique.__contains__("youtube"):
-                url = f"https://www.youtube.com/watch?v={self.getMusiqueId(self)}"
+            await self.boucle_musique(self.ctx, self.choix_musique) # le chenapan qui revole
 
-            elif self.choix_musique.__contains__("spotify"):
-                url = f"{self.getMusiqueId(self)}"
-                
-            else:
-                print("Erreur dans if rand")
-            await self.boucle_musique()
-
-        elif (self.replay):
-
-            if self.choix_musique.__contains__("youtube"):
-                url_musique = f"https://www.youtube.com/watch?v={self.getMusiqueId(self)}"
-
-            elif self.choix_musique.__contains__("spotify"):
-                url_musique = f"{self.getMusiqueId(self)}"
-
-            else:
-                print("Erreur dans elif replay")
-
-            await self.boucle_musique(self.ctx, self.choix_musique)
- 
-    def getMusiqueId(self):
-        file = f"playlist\{self.choix_musique}.csv"
+    def getMusiqueId(self): # Permet de récuperer une ligne au hasard d'une playlist
+        file = f"playlist\{self.asked_playlist}.csv"
         with open(file=file) as f:
             musiqueId = None
             lineCount = 0
-            for line in f:
+            for line in f: # calcul le nombre de lignes en tout
                 lineCount += 1
-            musiqueRand = random.randint(0, lineCount)
+            musiqueRand = random.randint(1, lineCount) # choisit une ligne au hasard
             lineCount = 0
             with open(file=file) as f:
                 for line in f:
                     lineCount += 1
-                    if int(lineCount) == int(musiqueRand):
+                    if int(lineCount) == int(musiqueRand): # Récupère les trucs stockés dans la ligne choisit précédemment
                         musiqueId = line
                         return musiqueId
 
-    async def getUrl(self):
-        if self.choix_musique == "Aléatoire":
-            self.choix_musique = str(random.choice(glob.glob("playlist/*.csv"))
-                      ).replace("playlist\\", "").replace(".csv", "")
+    async def getUrl(self): # Permet de jouer une playlist: ça récupère une musique aléatoire à partir de la toute première playlist demandée (self.choix_musique)
+        self.asked_playlist = self.choix_musique
+        if self.asked_playlist == "Aléatoire": # Si aléatoire était la demande, alors on prend une playlist aléatoire
+            self.asked_playlist = str(random.choice(glob.glob("playlist/*.csv"))
+                                     ).replace("playlist\\", "").replace(".csv", "")
             self.replay = False
 
-        if self.choix_musique.__contains__("youtube"):
+        if self.asked_playlist.__contains__("youtube"): # Destinée à être supprimé, ça vérifie si la playlist est une playlist youtube ou spotify mais personne n'utilise de playlist youtube
             url = f"https://www.youtube.com/watch?v={self.getMusiqueId(self)}"
             replay = True
 
-        elif self.choix_musique.__contains__("spotify"):
+        elif self.asked_playlist.__contains__("spotify"): # si la playlist est spotify ou youtube ça récupère les données sur la musique (titre, auteur etc)
             url = f"{self.getMusiqueId(self)}"
             replay = True
 
-        else:
-            url = self.choix_musique
+        else: # si c'est ni l'un ni l'autre, ça veut dire que l'utilisateur n'a pas demandé de playlist mais plutôt une simple musique
+            url = self.asked_playlist
             replay = False
-            if self.choix_musique == "stop":
+            if self.asked_playlist == "stop":
                 return await self.voice.disconnect()
 
         return url, replay
 
-    def getSong(song):
+    def getSong(song): # Pour avoir les paroles, A FINIR
         string = str(song)
         titre = string.split().pop(0)
         artiste = string.split().pop(-1)
         song = genius.search_song(titre, artiste)
         return song.lyrics
 
-    async def ensure_voice(self):
-        if self.ctx.voice_client is None:
-            if self.ctx.author.voice:
+    async def ensure_voice(self): # Etape obligatoire permettant de ne pas créer de conflit
+        if self.ctx.voice_client is None:  # vérifie que le demandeur de musique est bien dans un salon vocal 
+            if self.ctx.author.voice: # si le bot n'est pas connecté, ça le connecte
                 await self.ctx.author.voice.channel.connect()
             else:
                 await self.ctx.send("Ta gueule mathis")
-                raise commands.CommandError(
-                    "Author not connected to a voice channel.")
-        elif self.ctx.voice_client.is_playing():
+        elif self.ctx.voice_client.is_playing(): # Si le bot jouait de la musique au moment de l'appel, ça l'arrête
             self.ctx.voice_client.stop()
-        try:
+        try:  # même moi jsais pas mais j'ai dû le faire sinon "voice is not defined"
             # print("voice réussie ligne 109 donc tu peux supp cette ligne")
             self.voice
         except:
@@ -184,7 +158,8 @@ class Musique():
             self.voice = self.ctx.voice_client
         self.voice.stop()
 
-@bot.tree.command(guild = discord.Object(id=769911179547246592), description="Joue une playlist")
+
+@bot.tree.command(guild=discord.Object(id=769911179547246592), description="Joue une playlist")
 async def playlist(interaction: discord.Interaction):
     ctx = await commands.Context.from_interaction(interaction)
     await interaction.response.send_message("Choisis", view=playlistSelectView(ctx), ephemeral=True)
@@ -192,10 +167,20 @@ async def playlist(interaction: discord.Interaction):
 
 class playlistSelectView(discord.ui.View):
     def __init__(self, ctx):
+        self.ctx = ctx
         super().__init__(timeout=None)
-        self.add_item(playlistSelect(ctx))
+        self.add_item(discord.ui.Button(style=discord.ButtonStyle.blurple, label= "Aléatoire", custom_id= "Aléatoire"))
+        for playlist in glob.glob("playlist/*.csv"):
+            try:
+                self.add_item(discord.ui.Button(style=discord.ButtonStyle.blurple, label=str(playlist).replace(
+                "playlist\\", "").replace("spotify", "").replace(".csv", ""), custom_id=str(playlist).replace(
+                "playlist\\", "").replace(".csv", "")))
+            except:
+                print("Trop de playlists et pas assez de boutons je crois")
+    async def interaction_check(self, interaction=discord.Interaction):
+        await Musique.boucle_musique(ctx = self.ctx, musique = interaction.data.get("custom_id"))
 
-
+"""
 class playlistSelect(discord.ui.Select):
     def __init__(self, ctx):
         self.ctx = ctx
@@ -207,15 +192,16 @@ class playlistSelect(discord.ui.Select):
                          min_values=1, max_values=1, options=options)
 
         for playlist in glob.glob("playlist/*.csv"):
-            self.add_option(label=str(playlist).replace(
-                "playlist\\", "").replace(".csv", ""), description="⠀")
+                self.add_option(label=str(playlist).replace(
+                    "playlist\\", "").replace(".csv", ""), description="⠀")
 
     async def callback(self, interaction: discord.Interaction):
         await Musique.boucle_musique(ctx = self.ctx, musique = self.values[0])
+"""
 
 
-@bot.tree.command(guild = discord.Object(id=769911179547246592), description="Joue un son")
+@bot.tree.command(guild=discord.Object(id=769911179547246592), description="Joue un son")
 async def play(interaction: discord.Interaction, musique: str = "Aléatoire"):
     ctx = await commands.Context.from_interaction(interaction)
     await interaction.response.send_message(f"Joue {musique}", ephemeral=True)
-    await Musique.boucle_musique(ctx = ctx, musique = musique)
+    await Musique.boucle_musique(ctx=ctx, musique=musique)
