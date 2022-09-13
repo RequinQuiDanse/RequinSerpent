@@ -91,7 +91,10 @@ class Ultimate_View(discord.ui.View):
                     if str(false_answer_2) != "None":
                         embed.add_field(
                             name=emoji[2], value=f"```{answer_order[2]}```", inline=True)
-
+                        print(
+                            f"txt Real answer ligne: {randomResult} / lenght: {real_answer.__len__()}\nfalse answer1 lenght: {false_answer_1.__len__()}\nfalse answer2 lenght: {false_answer_2.__len__()}")
+                    print(
+                        f"txt Real answer ligne: {randomResult} / lenght: {real_answer.__len__()}\nfalse answer1 lenght: {false_answer_1.__len__()}")
                     self.question_used.append(
                         str(random_file) + str(randomResult))  # on stock la question pour ne pas qu'elle revienne plus tard
 
@@ -145,7 +148,7 @@ class Ultimate_View(discord.ui.View):
 
                     self.question_used.append(
                         str(random_file) + str(randomResult)) # Stockage de la question pour ne pas qu'elle revienne après
-                    print(f"Real answer ligne: {randomResult} / lenght: {real_answer.__len__()}\nfalse answer1 ligne: {randomFaux1} / lenght: {false_answer_1.__len__()}\nfalse answer2 ligne: {randomFaux2} / lenght: {false_answer_2.__len__()}\nfalse answer3 ligne: {randomResult} / lenght: {real_answer.__len__()}")
+                    print(f"signes Real answer ligne: {randomResult} / lenght: {real_answer.__len__()}\nfalse answer1 ligne: {randomFaux1} / lenght: {false_answer_1.__len__()}\nfalse answer2 ligne: {randomFaux2} / lenght: {false_answer_2.__len__()}\nfalse answer3 ligne: {randomResult} / lenght: {real_answer.__len__()}")
 
                     # et c'est la chenille qui redémarre
                     await interaction.response.edit_message(view=Ultimate_View(self.userId, real_answer, answer_order, embed, self.errorCounter, self.tourCounter, self.avatar, self.question_used), embed=embed)
@@ -230,9 +233,9 @@ async def quizz(interaction: discord.Interaction): # Ici on creer la commande su
                 embed.add_field(
                     name=emoji[2], value=f"```{answer_order[2]}```", inline=True)
                 print(
-                    f"Real answer ligne: {randomResult} / lenght: {real_answer.__len__()}\nfalse answer1 lenght: {false_answer_1.__len__()}\nfalse answer2 lenght: {false_answer_2.__len__()}")
+                    f"txt Real answer ligne: {randomResult} / lenght: {real_answer.__len__()}\nfalse answer1 lenght: {false_answer_1.__len__()}\nfalse answer2 lenght: {false_answer_2.__len__()}")
             print(
-                f"Real answer ligne: {randomResult} / lenght: {real_answer.__len__()}\nfalse answer1 lenght: {false_answer_1.__len__()}")
+                f"txt Real answer ligne: {randomResult} / lenght: {real_answer.__len__()}\nfalse answer1 lenght: {false_answer_1.__len__()}")
 
             errorCounter = 0 # Pour compter les points
             tourCounter = 0 # Pour compter les points
@@ -288,5 +291,5 @@ async def quizz(interaction: discord.Interaction): # Ici on creer la commande su
             avatar = interaction.user.avatar # stock l'avatar du quizzeur
             question_used.append(str(random_file) + str(randomResult)) # stock questions sur un emplacement de mémoire ou jspquoi j'ai pas réussi le test de nsi de toute façon
             ctx = await commands.Context.from_interaction(interaction)
-            print(f"Real answer ligne: {randomResult} / lenght: {real_answer.__len__()}\nfalse answer1 ligne: {randomFaux1} / lenght: {false_answer_1.__len__()}\nfalse answer2 ligne: {randomFaux2} / lenght: {false_answer_2.__len__()}\nfalse answer3 ligne: {randomResult} / lenght: {real_answer.__len__()}")
+            print(f"signes Real answer ligne: {randomResult} / lenght: {real_answer.__len__()}\nfalse answer1 ligne: {randomFaux1} / lenght: {false_answer_1.__len__()}\nfalse answer2 ligne: {randomFaux2} / lenght: {false_answer_2.__len__()}\nfalse answer3 ligne: {randomResult} / lenght: {real_answer.__len__()}")
             await interaction.response.send_message(view=Ultimate_View(ctx.author.id, real_answer, answer_order, embed, errorCounter, tourCounter, avatar, question_used), embed=embed)
