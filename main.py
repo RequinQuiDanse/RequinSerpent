@@ -1,5 +1,6 @@
 from bot import bot, discord
-
+import sys
+sys.path.append(".env/lib64/python3.10/site-packages")
 import commands.musique
 import commands.crack
 import commands.vids
@@ -19,7 +20,6 @@ import commands.pool
 import commands.fool
 import commands.embed
 import commands.ultimate_quizz
-
 
 @bot.event
 async def on_ready():
