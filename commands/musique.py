@@ -164,7 +164,6 @@ async def playlist(interaction: discord.Interaction):
     ctx = await commands.Context.from_interaction(interaction)
     await interaction.response.send_message("Choisis", view=playlistSelectView(ctx), ephemeral=True)
 
-
 class playlistSelectView(discord.ui.View):
     def __init__(self, ctx):
         self.ctx = ctx

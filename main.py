@@ -18,13 +18,12 @@ import commands.legende
 import commands.pool
 import commands.fool
 import commands.embed
-import commands.ultimate_quizz
-
-
+import commands.img_to_txt
+import commands.weather
 @bot.event
 async def on_ready():
     print("Sync")
-    await bot.tree.sync()
+    await bot.tree.sync(guild=discord.Object(id=769911179547246592))
 
 with open("token.txt") as f:
     TOKEN = str(f.readlines()).replace("['", "").replace("']", "")
