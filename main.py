@@ -20,6 +20,8 @@ import commands.fool
 import commands.embed
 import commands.img_to_txt
 import commands.weather
+import commands.ultimate_quizz
+
 @bot.event
 async def on_ready():
     print("Sync")

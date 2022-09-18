@@ -1,9 +1,7 @@
 __pycache__
 .vscode
 doc
-playlist/code_secret_client.json
 bot.cmd
 token.txt
 token.pickle
-commands/fool.py
 *.jpg
