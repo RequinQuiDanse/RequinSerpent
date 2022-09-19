@@ -1,6 +1,5 @@
 from bot import bot, discord
-import sys
-sys.path.append(".env/lib64/python3.10/site-packages")
+
 import commands.musique
 import commands.crack
 import commands.vids
@@ -19,12 +18,14 @@ import commands.legende
 import commands.pool
 import commands.fool
 import commands.embed
+import commands.img_to_txt
+import commands.weather
 import commands.ultimate_quizz
 
 @bot.event
 async def on_ready():
     print("Sync")
-    await bot.tree.sync()
+    await bot.tree.sync(guild=discord.Object(id=769911179547246592))
 
 with open("token.txt") as f:
     TOKEN = str(f.readlines()).replace("['", "").replace("']", "")
