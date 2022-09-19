@@ -1,4 +1,3 @@
-from tkinter import E
 from bot import bot, discord, commands
 
 
