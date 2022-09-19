@@ -5,3 +5,4 @@ bot.cmd
 token.txt
 token.pickle
 *.jpg
+.env
