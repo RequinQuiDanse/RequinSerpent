@@ -1,4 +1,3 @@
-from matplotlib.pyplot import title
 import numpy as np
 from bot import bot, discord, commands
 import random

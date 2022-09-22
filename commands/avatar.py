@@ -63,7 +63,7 @@ class photoButton(discord.ui.View):
         #f"photo-{self.idImage}.jpg" = f"photo-{self.idImage}.jpg"
         #f"attachment://photo-{self.idImage}.jpg" = f"attachment://photo-{self.idImage}.jpg"
         
-    @discord.ui.button(label='Edge', style=discord.ButtonStyle.gray)
+    @discord.ui.button(label='Black&White', style=discord.ButtonStyle.gray)
     async def Edge(self, interaction: discord.Interaction, button: discord.ui.Button):
         with Image(filename=self.avatarMobile) as img:
             img.transform_colorspace('gray')
@@ -74,7 +74,7 @@ class photoButton(discord.ui.View):
             await interaction.response.edit_message(attachments=[discord.File(f"photo-{self.idImage}.jpg")], embed = embed)
 
     # This one is similar to the confirmation button except sets the inner value to `False`
-    @discord.ui.button(label='Emboss', style=discord.ButtonStyle.grey)
+    @discord.ui.button(label='Reliefs', style=discord.ButtonStyle.grey)
     async def Emboss(self, interaction: discord.Interaction, button: discord.ui.Button):
         with Image(filename=self.avatarMobile) as img:
             img.transform_colorspace('gray')

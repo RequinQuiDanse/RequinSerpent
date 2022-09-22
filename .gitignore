@@ -6,3 +6,4 @@ token.txt
 token.pickle
 *.jpg
 not_commands
+.env
