@@ -142,13 +142,13 @@ class chimpButton(discord.ui.View):
 
 
 @bot.tree.command(guild = discord.Object(id=769911179547246592), description="Chimp Test")
-async def chimptest(interaction: discord.Interaction):
+async def chimp_test(interaction: discord.Interaction):
     ctx = await commands.Context.from_interaction(interaction)
     await interaction.response.send_message("Chimp Test", view=chimpButton(ctx))
 
 
 @bot.tree.command(guild = discord.Object(id=769911179547246592), description="Chimp Test Scores")
-async def chimptestscore(interaction: discord.Interaction):
+async def chimp_testscore(interaction: discord.Interaction):
     file = 'csv_files\chimpdata.csv'
     df = pd.read_csv(file)
     df = df[df.score > 600]

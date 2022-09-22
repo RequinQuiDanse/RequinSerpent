@@ -7,7 +7,7 @@ class poolModal(discord.ui.Modal, title="Créer ton sondage"):
         super().__init__()
         self.msg = msg
     pool = discord.ui.TextInput(
-        label="Combien d'options ? (1, 2, 3... Max = 10)",
+        label="Combien d'options ? (1, 2, 3... / a, b, c..z)",
         placeholder=""
     )
 

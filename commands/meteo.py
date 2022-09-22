@@ -6,7 +6,7 @@ headers = {
 
 
 @bot.tree.command(description="Donne la méteo sur 1 semaine")
-async def meteo(interaction: discord.Interaction, city: str):
+async def meteo(interaction: discord.Interaction, city: str = "Betz"):
     res = requests.get(f'https://www.google.com/search?q={city+ " weather".replace(" ", "+")}\
       &oq={city}&aqs=chrome.0.35i3912j014j46jj69i60.6128j1j7&sourceid=chrome&ie=UTF-8', headers=headers)
     soup = BeautifulSoup(res.text, "html.parser")
@@ -38,14 +38,12 @@ async def meteo(interaction: discord.Interaction, city: str):
         day = 6
 
     meteo = []
-    temps = soup.select(".uW5pk")  # [0].getText().strip()
+    temps = soup.select(".uW5pk")
     for element in temps:
         meteo.append(element["alt"])
-    #weather = []
 
     embed = discord.Embed(title=f"Météo {city}", color=discord.Color.random())
     for x in range(8):
-        #weather.append(str(week[day]) + " " + str(temp[x]) + "°, " + meteo[x])
         embed.add_field(
             name= f"{str(week[day])} {str(temp[x])} °", value = f"```{meteo[x]}```", inline = True)
         day += 1

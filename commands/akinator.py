@@ -1,6 +1,5 @@
 from bot import bot, discord, commands
 from akinator.async_aki import Akinator
-import akinator
 
 
 class akiButton(discord.ui.View):
