@@ -6,3 +6,4 @@ token.txt
 token.pickle
 *.jpg
 .env
+img_to_txt.py
