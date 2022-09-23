@@ -7,3 +7,4 @@ token.pickle
 *.jpg
 .env
 img_to_txt.py
+not_commands

@@ -17,6 +17,11 @@ import commands.legende
 import commands.sondage
 import commands.img_to_txt
 import commands.meteo
+import not_commands.vids
+import not_commands.supp
+import not_commands.parle
+import not_commands.fool
+import not_commands.embed
 
 @bot.event
 async def on_ready():
