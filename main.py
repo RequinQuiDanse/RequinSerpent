@@ -25,7 +25,7 @@ import commands.img_to_txt
 import commands.meteo
 import commands.not_commands.ultimate_quizz
 import commands.rotate_picture
-
+import commands.ultimate_team
 @bot.event
 async def on_ready():
     print("Sync")
