@@ -17,6 +17,7 @@ import commands.legende
 import commands.sondage
 import commands.img_to_txt
 import commands.meteo
+import commands.ultimate_team
 import not_commands.vids
 import not_commands.supp
 import not_commands.parle

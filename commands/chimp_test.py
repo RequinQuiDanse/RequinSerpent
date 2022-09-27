@@ -128,7 +128,7 @@ class chimpButton(discord.ui.View):
                 writer.writerow(
                     {'name': pseudo, 'points': str(self.nombreCases), 'time': temps, 'score': score})
             except:
-                if str(pseudo) == "મ̴̲̾ ̴̢̨એ̴̡̡ક̵̛̤ ̶̡͓અ̷͕͚બ̴̛̼":  # "
+                if str(pseudo) == "મ̴̲̾ ̴̢̨એ̴̡̡ક̵̛̤ ̶̡͓અ̷͕͚બ̴̛̼":
                     writer.writerow(
                         {'name': "Adam", 'points': str(self.nombreCases), 'time': temps, 'score': score})
                 elif str(pseudo) == "dwɔf we dɛn kɔl dwɔf":
