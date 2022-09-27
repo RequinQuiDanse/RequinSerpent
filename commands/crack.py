@@ -51,4 +51,3 @@ async def crack(interaction: discord.Interaction):
     await interaction.response.send_modal(crackModal())
 
 
-

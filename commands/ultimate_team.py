@@ -2,8 +2,8 @@ from bot import bot, discord
 import random
 import pandas as pd  # comme mathis
 
-as_team = r"csv_files/as_team.csv"
-club_team = r"csv_files/club_team.csv"
+as_team = r"csv_files\as_team.csv"
+club_team = r"csv_files\club_team.csv"
 
 
 
@@ -11,7 +11,7 @@ club_team = r"csv_files/club_team.csv"
 async def ultimate_team(interaction: discord.Interaction):
     CLUB = pd.read_csv(club_team)["club"]
     AS = pd.read_csv(as_team)["as"]
-    embed = discord.Embed(color=discord.Color.random(), title="Joeurs")
+    embed = discord.Embed(color=discord.Color.random(), title="Joueurs")
     embed.add_field(name="```Club:```", value=f'```bash\n"\n'+"\n".join(CLUB)+'\n"```', inline=True)
     embed.add_field(name="```As:```", value=f'```ini\n[\n'+"\n".join(AS)+'\n]```', inline=True)
 
@@ -77,6 +77,7 @@ class Edit_Team_Modal(discord.ui.Modal, title="Edit la team"):
             df.to_csv(team, mode="a", index=False, header=False)
 
         if self.retirer.value != "0":
+            read = pd.read_csv(fr"csv_files/{_team}_team.csv")[_team]
             line = 0
             for row in read:
                 if row == self.retirer.value:
