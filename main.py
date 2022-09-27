@@ -24,7 +24,7 @@ import commands.not_commands.embed
 import commands.img_to_txt
 import commands.meteo
 import commands.not_commands.ultimate_quizz
-
+import commands.rotate_picture
 
 @bot.event
 async def on_ready():
@@ -41,10 +41,10 @@ async def on_ready():
         try:
             if str(ma_guild.me.activity.type) != "ActivityType.listening" :
                 activ = '/' + str(random.choice(commands)).replace("commands\\","").replace(".py","")
-                await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=activ))
+                await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.competing, name=activ))
         except:
             activ = '/' + str(random.choice(commands)).replace("commands\\","").replace(".py","")
-            await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=activ))
+            await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.competing, name=activ))
         await asyncio.sleep(150)
 
 
