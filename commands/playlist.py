@@ -1,12 +1,10 @@
+# ENORME PRBLM AVEC LES BOUCLES, NOTAMMENT GETMUSIQUEID!
 import asyncio
-from dis import dis
 import glob
-import re
 import discord
 import youtube_dl
 from discord.ext import commands
 import random
-import requests
 from bot import bot
 import lyricsgenius
 
@@ -60,7 +58,8 @@ class YTDLSource(discord.PCMVolumeTransformer):
 class Musique():
     def __init__(self):
         pass
-
+    def __del__(self):
+        print("Object deleted")
     @classmethod
     async def boucle_musique(self, ctx, musique):  # Func cerveau
         self.ctx = ctx
@@ -71,6 +70,7 @@ class Musique():
 
         # récupère les données de la musique et si la demande est une playlist ou une musique
         self.url_musique, self.replay = await self.getUrl(self)
+        print(self.url_musique)
 
         await self.ensure_voice(self)  # étape pour bien connecté le bot
 
@@ -84,7 +84,8 @@ class Musique():
                 return
 
         await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=player.title))
-        #await self.getSong(self, self.url_musique)
+        #await self.getSong(self, player.title)
+
         while self.voice.is_playing():  # Attend la fin de la musique
             await asyncio.sleep(1)
         self.voice.stop()  # arrête de chanter
@@ -141,20 +142,18 @@ class Musique():
 
         return url, replay
 
-    async def getSong(self, song):  # Pour avoir les paroles, A FINIR
-        song = genius.search_song(song.replace("audio", ""))
-        if str(self.ctx.message.channel.id) != '903673532247048192':
-            channel = bot.get_channel(942818979318210631)
-        else:
-            channel = bot.get_channel(903673532247048192)
-        if song == None:
-            await channel.send('```'+song.lyrics[0:2000-6]+'```')
-            if(song.lyrics[2000:3999]):
-                await channel.send('```'+song.lyrics[2000-6:3999-12]+'```')
-                if(song.lyrics[4000:]):
-                    await channel.send('```'+song.lyrics[4000-12:5999-18]+'```')
-                    if(song.lyrics[6000:]):
-                        await channel.send('```'+song.lyrics[6000-18:]+'```')
+    async def getSong(self, _song):  # Pour avoir les paroles, A FINIR
+        song = genius.search_song(_song.lower().replace("audio", ""))
+        if song != None:
+            if str(self.ctx.message.channel.id) != '903673532247048192':
+                channel = bot.get_channel(942818979318210631)
+            else:
+                channel = bot.get_channel(903673532247048192)
+                #await channel.send(content= song)
+            with open(r'csv_files\lyrics.txt', 'w', encoding='utf-8') as f:
+                f.write(str(song.lyrics))
+            await channel.send(file = discord.File(r'csv_files\lyrics.txt'), delete_after=300)
+
     async def ensure_voice(self): # Etape obligatoire permettant de ne pas créer de conflit
         if self.ctx.voice_client is None:  # vérifie que le demandeur de musique est bien dans un salon vocal 
             if self.ctx.author.voice: # si le bot n'est pas connecté, ça le connecte
@@ -173,6 +172,15 @@ class Musique():
             self.voice = self.ctx.voice_client
         self.voice.stop()
 
+class Lyrics_Button(discord.ui.View):
+    def __init__(self, song):
+        super().__init__()
+        self.song = song
+
+    @discord.ui.button(label='Paroles', style=discord.ButtonStyle.green)
+    async def edit_team(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.message.delete()
+        await interaction.response.send_message(file = discord.File(r"csv_files\lyrics.txt"))
 
 @bot.tree.command(guild=discord.Object(id=769911179547246592), description="Joue une playlist")
 async def playlist(interaction: discord.Interaction):
@@ -192,6 +200,7 @@ class playlistSelectView(discord.ui.View):
             except:
                 print("Trop de playlists et pas assez de boutons je crois")
     async def interaction_check(self, interaction=discord.Interaction):
+
         await Musique.boucle_musique(ctx = self.ctx, musique = interaction.data.get("custom_id"))
 
 """
