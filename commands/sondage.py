@@ -26,14 +26,14 @@ class poolModal(discord.ui.Modal, title="Créer ton sondage"):
                 await interaction.response.send_message(content="C'est bon chef", ephemeral=True)
         else:
             if self.pool.value.__contains__(";"):
-                letter = self.pool.value.replace(";","")
+                letter = self.pool.value.replace(";","").lower()
                 for x in range(26):
                     if chr(x+97) == str(letter):
                         await self.msg.add_reaction(reacta[x])
                 await interaction.response.send_message(content="C'est bon chef", ephemeral=True)
             else:
                 for x in range(26):
-                    if chr(x+97) == str(self.pool.value):
+                    if chr(x+97) == str(self.pool.value).lower():
                         for y in range(x+1):
                             await self.msg.add_reaction(reacta[y])
                 await interaction.response.send_message(content="C'est bon chef", ephemeral=True)

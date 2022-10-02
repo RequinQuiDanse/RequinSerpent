@@ -84,7 +84,7 @@ class Musique():
                 return
 
         await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=player.title))
-        #await self.getSong(self, player.title)
+        await self.getSong(self, player.title)
 
         while self.voice.is_playing():  # Attend la fin de la musique
             await asyncio.sleep(1)
@@ -152,7 +152,7 @@ class Musique():
                 #await channel.send(content= song)
             with open(r'csv_files\lyrics.txt', 'w', encoding='utf-8') as f:
                 f.write(str(song.lyrics))
-            await channel.send(file = discord.File(r'csv_files\lyrics.txt'), delete_after=300)
+            await self.ctx.reply(file = discord.File(r'csv_files\lyrics.txt'), delete_after=300, view = Lyrics_Button(), ephemeral = True)
 
     async def ensure_voice(self): # Etape obligatoire permettant de ne pas créer de conflit
         if self.ctx.voice_client is None:  # vérifie que le demandeur de musique est bien dans un salon vocal 
@@ -173,13 +173,8 @@ class Musique():
         self.voice.stop()
 
 class Lyrics_Button(discord.ui.View):
-    def __init__(self, song):
-        super().__init__()
-        self.song = song
-
-    @discord.ui.button(label='Paroles', style=discord.ButtonStyle.green)
+    @discord.ui.button(label='Paroles publiques?', style=discord.ButtonStyle.green)
     async def edit_team(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.message.delete()
         await interaction.response.send_message(file = discord.File(r"csv_files\lyrics.txt"))
 
 @bot.tree.command(guild=discord.Object(id=769911179547246592), description="Joue une playlist")

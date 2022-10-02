@@ -7,3 +7,4 @@ token.pickle
 *.jpg
 not_commands
 .env
+lyrics.txt
