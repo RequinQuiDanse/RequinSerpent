@@ -84,7 +84,7 @@ class Musique():
                 return
 
         await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=player.title))
-        await self.getSong(self, player.title)
+        await self.getSong(self, str(player.title).replace("clip officiel",""))
 
         while self.voice.is_playing():  # Attend la fin de la musique
             await asyncio.sleep(1)
@@ -145,11 +145,11 @@ class Musique():
     async def getSong(self, _song):  # Pour avoir les paroles, A FINIR
         song = genius.search_song(_song.lower().replace("audio", ""))
         if song != None:
-            if str(self.ctx.message.channel.id) != '903673532247048192':
-                channel = bot.get_channel(942818979318210631)
-            else:
-                channel = bot.get_channel(903673532247048192)
-                #await channel.send(content= song)
+            # if str(self.ctx.message.channel.id) != '903673532247048192':
+            #     channel = bot.get_channel(942818979318210631)
+            # else:
+            #     channel = bot.get_channel(903673532247048192)
+            #     #await channel.send(content= song)
             with open(r'csv_files\lyrics.txt', 'w', encoding='utf-8') as f:
                 f.write(str(song.lyrics))
             await self.ctx.reply(file = discord.File(r'csv_files\lyrics.txt'), delete_after=300, view = Lyrics_Button(), ephemeral = True)
@@ -177,7 +177,8 @@ class Lyrics_Button(discord.ui.View):
     async def edit_team(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message(file = discord.File(r"csv_files\lyrics.txt"))
 
-@bot.tree.command(guild=discord.Object(id=769911179547246592), description="Joue une playlist")
+music_class = Musique()
+@bot.tree.command(description="Joue une playlist")
 async def playlist(interaction: discord.Interaction):
     ctx = await commands.Context.from_interaction(interaction)
     await interaction.response.send_message("Choisis", view=playlistSelectView(ctx), ephemeral=bool(interaction.channel_id != 942818979318210631))
@@ -196,7 +197,7 @@ class playlistSelectView(discord.ui.View):
                 print("Trop de playlists et pas assez de boutons je crois")
     async def interaction_check(self, interaction=discord.Interaction):
 
-        await Musique.boucle_musique(ctx = self.ctx, musique = interaction.data.get("custom_id"))
+        await music_class.boucle_musique(ctx = self.ctx, musique = interaction.data.get("custom_id"))
 
 """
 class playlistSelect(discord.ui.Select):
@@ -218,8 +219,8 @@ class playlistSelect(discord.ui.Select):
 """
 
 
-@bot.tree.command(guild=discord.Object(id=769911179547246592), description="Joue un son")
-async def play(interaction: discord.Interaction, musique: str = "Aléatoire"):
+@bot.tree.command(description="Joue un son")
+async def play(interaction: discord.Interaction, musique: str):
     ctx = await commands.Context.from_interaction(interaction)
     await interaction.response.send_message(f"Joue {musique}", ephemeral=True)
-    await Musique.boucle_musique(ctx=ctx, musique=musique)
+    await music_class.boucle_musique(ctx=ctx, musique=musique)
