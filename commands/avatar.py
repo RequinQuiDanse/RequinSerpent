@@ -6,6 +6,9 @@ import os
 
 
 class guildSelect(discord.ui.Select):
+    """
+    create a select with a list of ppl preregistred. permit the user to select avatar from someone
+    """
     def __init__(self):
 
         options = [
@@ -54,6 +57,9 @@ class guildSelectView(discord.ui.View):
         self.add_item(guildSelect())
 
 class photoButton(discord.ui.View):
+    """
+    create all the buttons that permit to do edits on a pic
+    """
     def __init__(self, x):
         super().__init__()
         self.avatar = str(x.avatar)
@@ -223,4 +229,7 @@ class photoButton(discord.ui.View):
 
 @bot.tree.command(guild = discord.Object(id=769911179547246592), description="Jeu avec avatar")
 async def avatar(interaction: discord.Interaction):
+    """
+    cmd that permit user to edit a picture with filters from wand module
+    """
     await interaction.response.send_message("Choisis", view=guildSelectView(), ephemeral=True)

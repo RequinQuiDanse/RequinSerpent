@@ -2,6 +2,9 @@ from bot import bot, discord
 from wand.image import Image
 
 class rotateModal(discord.ui.Modal, title="Créer ton sondage"):
+    """
+    text-input for user to say from which degrees he wants to rotate his pic
+    """
     def __init__(self, img):
         super().__init__()
         self.img = img
@@ -22,4 +25,7 @@ class rotateModal(discord.ui.Modal, title="Créer ton sondage"):
 
 @bot.tree.command(description="Fait tourner une image", guild= discord.Object(id=769911179547246592))
 async def rotate_picture(interaction: discord.Interaction, img: discord.Attachment):
+    """
+    integrated-cmd that permit to rotate a picture and send a msg with it
+    """
     await interaction.response.send_modal(rotateModal(img))

@@ -3,6 +3,9 @@ from akinator.async_aki import Akinator
 
 
 class akiButton(discord.ui.View):
+    """
+    the class the contain every buttons needed to play akinator (no, prbly not, idk, prbly yes, yes)
+    """
     def __init__(self, aki):
         self.aki = aki
         super().__init__(timeout=180)
@@ -156,6 +159,9 @@ class akiButton(discord.ui.View):
 
 @bot.tree.command(guild = discord.Object(id=769911179547246592), description="Akinator")
 async def akinator(interaction: discord.Interaction):
+    """
+    cmd that send a msg with buttons to play akinator
+    """
     aki = Akinator()
     q = await aki.start_game(language="fr")
     embed = discord.Embed(title="Akinator").add_field(name="Question", value=q)

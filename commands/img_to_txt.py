@@ -10,6 +10,9 @@ path_to_tesseract = r"J:\Applications légères\Tessera\tesseract.exe"
 
 @bot.tree.command(name='img_to_txt', guild=discord.Object(id=769911179547246592))
 async def img_to_txt(interaction: discord.Interaction, img: discord.Attachment):
+        """
+        simple cmd that from the img send by the user get the text and send it
+        """
         await interaction.response.defer()
         # Opening the image & storing it in an image object
         await img.save(r"csv_files\translate.jpg")

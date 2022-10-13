@@ -7,7 +7,9 @@ redd = praw.Reddit(client_id='sWfWyLNn0NDR1Pog4PLaSA',
 
 @bot.command(guild = discord.Object(id=769911179547246592), description = "Envoie post reddit sur guerre")
 async def reddit(ctx):
-    """Envoie post random d'un reddit (la guerre là)"""
+    """
+    just a cmd that send random reddit post on a specific thread (actually CombatFootage thread)
+    """
     await ctx.message.delete()
     #eyeblech, LeagueOfMemes
     #memes_submissions =  reddit.subreddit('CombatFootage').hot()

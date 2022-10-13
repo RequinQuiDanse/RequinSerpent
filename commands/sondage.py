@@ -3,6 +3,9 @@ from bot import bot, discord
 
 
 class poolModal(discord.ui.Modal, title="Créer ton sondage"):
+    """
+    modal for the user to say which values he wants the bot to react with (A,B,C.. or 1,2,3)
+    """
     def __init__(self, msg):
         super().__init__()
         self.msg = msg
@@ -42,4 +45,7 @@ class poolModal(discord.ui.Modal, title="Créer ton sondage"):
 
 @bot.tree.context_menu(name='Sondage')
 async def pool(interaction: discord.Interaction, msg: discord.Message):
+    """
+    integrated-cmd to easily make a pool
+    """
     await interaction.response.send_modal(poolModal(msg=msg))

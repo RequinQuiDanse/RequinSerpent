@@ -9,6 +9,9 @@ club_team = r"csv_files\club_team.csv"
 
 @bot.tree.command(guild=discord.Object(id=769911179547246592), description="Ultimate team maker")
 async def ultimate_team(interaction: discord.Interaction):
+    """
+    cmd to randomly make teams, depends on how much the user wants teams
+    """
     CLUB = pd.read_csv(club_team)["club"]
     AS = pd.read_csv(as_team)["as"]
     embed = discord.Embed(color=discord.Color.random(), title="Joueurs")
@@ -35,7 +38,9 @@ async def ultimate_team(interaction: discord.Interaction):
 
 
 class Compo_Options(discord.ui.View):
-
+    """
+    buttons for the user to choose weither he wants to edit teams' players or to make the teams
+    """
     @discord.ui.button(label='Modifier les joueurs', style=discord.ButtonStyle.green)
     async def edit_team(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_modal(Edit_Team_Modal())
@@ -62,6 +67,9 @@ class Edit_Team_Modal(discord.ui.Modal, title="Edit la team"):
     )
 
     async def on_submit(self, interaction: discord.Interaction):
+        """
+        from the group selected (as, club), create random teams
+        """
         if self.team.value == "1":
             team = fr"csv_files/club_team.csv"
             _team = "club"

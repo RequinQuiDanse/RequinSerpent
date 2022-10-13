@@ -9,7 +9,9 @@ from bot import bot, discord
 
 
 class addPlaylistModal(discord.ui.Modal, title='Add playlist'):
-    
+    """
+    modal to enter the url of our playlist we want to add
+    """
     url = discord.ui.TextInput(
         label='Url de ta playlist / de ton artiste spotify',
         placeholder='...',
@@ -123,6 +125,7 @@ class addPlaylistModal(discord.ui.Modal, title='Add playlist'):
                             {'id': song["snippet"]["resourceId"]["videoId"]})
 
             main(youtube)
+
         elif self.url.value.__contains__("https://open.spotify.com/artist/"):
             url = self.url.value.replace(
                 "https://open.spotify.com/artist/", "").split("?si=", 1)[0]
@@ -159,10 +162,16 @@ class addPlaylistModal(discord.ui.Modal, title='Add playlist'):
 
 @bot.tree.command(guild = discord.Object(id=769911179547246592), description="Rajoutes une de tes playlists youtube ou spotify au bot")
 async def addplaylist(interaction: discord.Interaction):
+    """
+    the cmd that send a modal when asked
+    """
     await interaction.response.send_modal(addPlaylistModal())
 
 
 class tokenButton(discord.ui.View):
+    """
+    the class that contain the button that permit to give the token
+    """
     def __init__(self):
         super().__init__(timeout=180)
         self.add_item(discord.ui.Button(style=discord.ButtonStyle.blurple, label="LE LIEN",
@@ -174,6 +183,9 @@ class tokenButton(discord.ui.View):
 
 
 class tokenModal(discord.ui.Modal, title="Token"):
+    """
+    the modal that permit the user to enter his token from spotify api
+    """
     token = discord.ui.TextInput(
         label='Token',
         placeholder="Mettre le token entier ici"

@@ -56,6 +56,9 @@ class YTDLSource(discord.PCMVolumeTransformer):
 
 
 class Musique():
+    """
+    class that will do all the stuff (play, mangage replay, send lyrics)
+    """
     def __init__(self):
         pass
     def __del__(self):
@@ -100,6 +103,9 @@ class Musique():
             await self.boucle_musique(self.ctx, self.choix_musique)
 
     def getMusiqueId(self):  # Permet de récuperer une ligne au hasard d'une playlist
+        """
+        return a random music name extracted from csv files
+        """
         file = f"playlist\{self.asked_playlist}.csv"
         with open(file=file) as f:
             musiqueId = None
@@ -118,6 +124,10 @@ class Musique():
                         return musiqueId
 
     async def getUrl(self):  # Permet de jouer une playlist: ça récupère une musique aléatoire à partir de la toute première playlist demandée (self.choix_musique)
+        """
+        return a youtube url or a music name, depends on what is asked
+        also manage if a playlist is asked or no
+        """
         self.asked_playlist = self.choix_musique
         if self.asked_playlist == "Aléatoire":  # Si aléatoire était la demande, alors on prend une playlist aléatoire
             self.asked_playlist = str(random.choice(glob.glob("playlist/*.csv"))
@@ -142,7 +152,10 @@ class Musique():
 
         return url, replay
 
-    async def getSong(self, _song):  # Pour avoir les paroles, A FINIR
+    async def getSong(self, _song):
+        """
+        return lyrics of a song w/ genius api
+        """
         song = genius.search_song(_song.lower().replace("audio", ""))
         if song != None:
             # if str(self.ctx.message.channel.id) != '903673532247048192':
@@ -155,6 +168,9 @@ class Musique():
             await self.ctx.reply(file = discord.File(r'csv_files\lyrics.txt'), delete_after=300, view = Lyrics_Button(), ephemeral = True)
 
     async def ensure_voice(self): # Etape obligatoire permettant de ne pas créer de conflit
+        """
+        do all the stuff to encuse the bot's voice is well connected
+        """
         if self.ctx.voice_client is None:  # vérifie que le demandeur de musique est bien dans un salon vocal 
             if self.ctx.author.voice: # si le bot n'est pas connecté, ça le connecte
                 await self.ctx.author.voice.channel.connect()
@@ -173,6 +189,9 @@ class Musique():
         self.voice.stop()
 
 class Lyrics_Button(discord.ui.View):
+    """
+    add a button if user want lyrics to be public
+    """
     @discord.ui.button(label='Paroles publiques?', style=discord.ButtonStyle.green)
     async def edit_team(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_message(file = discord.File(r"csv_files\lyrics.txt"))
@@ -180,10 +199,16 @@ class Lyrics_Button(discord.ui.View):
 music_class = Musique()
 @bot.tree.command(description="Joue une playlist")
 async def playlist(interaction: discord.Interaction):
+    """
+    send the playlist's buttons, to permit user to select one
+    """
     ctx = await commands.Context.from_interaction(interaction)
     await interaction.response.send_message("Choisis", view=playlistSelectView(ctx), ephemeral=bool(interaction.channel_id != 942818979318210631))
 
 class playlistSelectView(discord.ui.View):
+    """
+    add one button per csv file
+    """
     def __init__(self, ctx):
         self.ctx = ctx
         super().__init__(timeout=None)
@@ -220,7 +245,7 @@ class playlistSelect(discord.ui.Select):
 
 
 @bot.tree.command(description="Joue un son")
-async def play(interaction: discord.Interaction, musique: str):
+async def play(interaction: discord.Interaction, musique: str = "Aléatoire"):
     ctx = await commands.Context.from_interaction(interaction)
     await interaction.response.send_message(f"Joue {musique}", ephemeral=True)
     await music_class.boucle_musique(ctx=ctx, musique=musique)

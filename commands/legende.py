@@ -9,6 +9,9 @@ from wand.display import display
 
 
 class legendeModal(discord.ui.Modal, title="Légende une photo"):
+    """
+    modal for the user to enter the caption and then send a pic with it
+    """
     def __init__(self, msg):
         super().__init__()
         self.msg = msg
@@ -36,4 +39,7 @@ class legendeModal(discord.ui.Modal, title="Légende une photo"):
 
 @bot.tree.context_menu(name='Légende une photo', guild=discord.Object(id=769911179547246592))
 async def legende(interaction: discord.Interaction, msg: discord.Message):
+    """
+    little integrated-cmd to add a legend in a picture
+    """
     await interaction.response.send_modal(legendeModal(msg=msg))

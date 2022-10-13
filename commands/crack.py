@@ -13,6 +13,9 @@ steam = ('https://steamunlocked.net/?s=')
 
 
 class crackModal(discord.ui.Modal, title='Crack'):
+    """
+    modal to enter the name of the game we want
+    """
     name = discord.ui.TextInput(
         label='Nom',
         placeholder='Nom du jeu ici...',
@@ -25,6 +28,9 @@ class crackModal(discord.ui.Modal, title='Crack'):
 
 
 class CrackResult(discord.ui.View):
+    """
+    set up buttons of all verified sites with cracked games
+    """
     def __init__(self, query=str):
         super().__init__()
         self.add_item(discord.ui.Button(label='Game3rb', url=rb +
@@ -48,6 +54,9 @@ class CrackResult(discord.ui.View):
 
 @bot.tree.command(guild = discord.Object(id=769911179547246592), description="Crack un jeu")
 async def crack(interaction: discord.Interaction):
+    """
+    cmd to search easily for a game's crack
+    """
     await interaction.response.send_modal(crackModal())
 
 

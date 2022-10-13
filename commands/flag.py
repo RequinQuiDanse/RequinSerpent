@@ -4,6 +4,9 @@ import csv
 
 
 class flagView(discord.ui.View):
+    """
+    class that do all the stuff
+    """
     def __init__(self, userId, realFlagName, flagsOrder, embed, errorCounter, tourCounter, avatar, question_used):
         self.userId = userId
         self.realFlagName = realFlagName
@@ -18,6 +21,9 @@ class flagView(discord.ui.View):
         self.brain()
 
     def brain(self):
+        """
+        set up buttons with random flag name in which the answer is
+        """
         self.clear_items()
         self.add_item(discord.ui.Button(
             style=discord.ButtonStyle.blurple, label=self.flagsOrder[0], custom_id=self.flagsOrder[0]))
@@ -29,6 +35,13 @@ class flagView(discord.ui.View):
             style=discord.ButtonStyle.blurple, label=self.flagsOrder[3], custom_id=self.flagsOrder[3]))
 
     async def interaction_check(self, interaction=discord.Interaction):
+        """
+        check if the interaction is stop, is next, is good or is false:
+        stop: disable buttons and give the score
+        next: get a new random flag and 3 others random country names, then send everything. And it count the number of round
+        good: disable flag-names-buttons, add a stop and a next button
+        false: add an error to the error_counter and make the answer that was clicked in red
+        """
         if self.userId != interaction.user.id:
             return
         self.clear_items()
@@ -105,6 +118,9 @@ class flagView(discord.ui.View):
 
 @bot.tree.command(guild = discord.Object(id=769911179547246592), description="Flag Quizz (base de donnée avec 258 drapeaux!)")
 async def flag(interaction: discord.Interaction):
+    """
+    cmd that send a flag with 4 country names. user have to find wich is the good
+    """
     question_used = []
     with open(r'csv_files\flag.csv', mode='r') as csv_file:
         csv_reader = csv.DictReader(csv_file)

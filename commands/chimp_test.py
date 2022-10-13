@@ -6,9 +6,10 @@ import time
 import pandas as pd
 
 # Cerveau du code
-
-
 class chimpButton(discord.ui.View):
+    """
+    class that do all the stuff
+    """
     def __init__(self, ctx):
         super().__init__(timeout=None)
         self.userId = ctx.author.id
@@ -27,6 +28,9 @@ class chimpButton(discord.ui.View):
 
     # Les règles du jeu
     async def interaction_check(self, interaction=discord.Interaction):
+        """
+        say what to do depends on the button clicked (good answer, bad answer, stop)
+        """
         if self.userId != interaction.user.id:
             return
         # Si le résultat est bon, passes à la prochaine case
@@ -55,6 +59,9 @@ class chimpButton(discord.ui.View):
 
     # Créateur du plateau
     def chimpButtonFunc(self):
+        """
+        create a table of buttons, sorted randomly
+        """
         # Néttoie les boutons pour en créer de nouveaux
         self.clear_items()
         # Cette variable défini le nombre de case soit le résultat du boutton attendu
@@ -77,6 +84,9 @@ class chimpButton(discord.ui.View):
 
     # Remets toutes les cases en bleu
     def setButtonBlue(self, id):
+        """
+        display the hidden number of the case that has been clicked
+        """
         self.clear_items()
         y = 0
         idIndex = next(
@@ -104,6 +114,9 @@ class chimpButton(discord.ui.View):
             self.add_item(self.button[add])
 
     def endButton(self):
+        """
+        when the game end, set all buttons as disabled
+        """
         self.clear_items()
         y = 0
         for x in range(0, 25):
@@ -118,6 +131,9 @@ class chimpButton(discord.ui.View):
             self.add_item(self.button[add])
 
     def csvWritter(self, pseudo, temps, score):
+        """
+        register the score in the csv file
+        """
         with open('csv_files\chimpdata.csv', mode='a') as csv_file:
             df = pd.read_csv('csv_files\chimpdata.csv')
             df = df[df.score > 500]
@@ -148,6 +164,9 @@ async def chimp_test(interaction: discord.Interaction):
 
 @bot.tree.command(guild = discord.Object(id=769911179547246592), description="Chimp Test Scores")
 async def chimp_testscore(interaction: discord.Interaction):
+    """
+    cmd that delete all scores lower than 600, and send a msg with scores
+    """
     file = 'csv_files\chimpdata.csv'
     df = pd.read_csv(file)
     df = df[df.score > 600]
