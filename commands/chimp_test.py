@@ -116,10 +116,10 @@ class chimpButton(discord.ui.View):
             self.add_item(self.button[add])
 
     def csvWritter(self, pseudo, temps, score):
-        with open('csv_files\chimpdata.csv', mode='a') as csv_file:
-            df = pd.read_csv('csv_files\chimpdata.csv')
+        with open('csv_files/chimpdata.csv', mode='a') as csv_file:
+            df = pd.read_csv('csv_files/chimpdata.csv')
             df = df[df.score > 500]
-            df.to_csv('csv_files\chimpdata.csv', index=False)
+            df.to_csv('csv_files/chimpdata.csv', index=False)
             fieldnames = ['name', 'points', 'time', 'score']
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
             try:
@@ -146,7 +146,7 @@ async def chimptest(interaction: discord.Interaction):
 
 @bot.tree.command(guild = discord.Object(id=769911179547246592), description="Chimp Test Scores")
 async def chimptestscore(interaction: discord.Interaction):
-    file = 'csv_files\chimpdata.csv'
+    file = 'csv_files/chimpdata.csv'
     df = pd.read_csv(file)
     df = df[df.score > 600]
     df.to_csv(file, index=False)

@@ -19,7 +19,7 @@ class addPlaylistModal(discord.ui.Modal, title='Add playlist'):
         if self.url.value.__contains__("https://open.spotify.com/playlist/"):
             url = self.url.value.replace(
                 "https://open.spotify.com/playlist/", "").split("?si=", 1)[0]
-            with open("playlist\\token.txt") as f:
+            with open("playlist//token.txt") as f:
                 TOKEN = str(f.readlines()).replace("['", "").replace("']", "")
             headers = {
                 "Accept": "application/json",
@@ -39,7 +39,7 @@ class addPlaylistModal(discord.ui.Modal, title='Add playlist'):
             r = requests.get(f"https://api.spotify.com/v1/playlists/{url}", headers=headers)
             data = r.json()
             playname = data["name"]
-            with open(f"playlist\spotify {playname}.csv", mode='w', newline='',  encoding='utf-8') as csv_file:
+            with open(f"playlist/spotify {playname}.csv", mode='w', newline='',  encoding='utf-8') as csv_file:
                 fieldnames = ['id']
                 writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
                 trackNumber = 0
@@ -62,12 +62,12 @@ class addPlaylistModal(discord.ui.Modal, title='Add playlist'):
                 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
                 api_service_name = "youtube"
                 api_version = "v3"
-                client_secrets_file = "playlist\code_secret_client.json.json"
+                client_secrets_file = "playlist/code_secret_client.json.json"
                 creds = None
                 # the file token.pickle stores the user's access and refresh tokens, and is
                 # created automatically when the authorization flow completes for the first time
-                if os.path.exists("playlist\\token.pickle"):
-                    with open("playlist\\token.pickle", "rb") as token:
+                if os.path.exists("playlist//token.pickle"):
+                    with open("playlist//token.pickle", "rb") as token:
                         creds = pickle.load(token)
                 # if there are no (valid) credentials availablle, let the user log in.
                 if not creds or not creds.valid:
@@ -78,7 +78,7 @@ class addPlaylistModal(discord.ui.Modal, title='Add playlist'):
                             client_secrets_file, SCOPES)
                         creds = flow.run_local_server(port=0)
                     # save the credentials for the next run
-                    with open("playlist\\token.pickle", "wb") as token:
+                    with open("playlist//token.pickle", "wb") as token:
                         pickle.dump(creds, token)
 
                 return build(api_service_name, api_version, credentials=creds)
@@ -100,7 +100,7 @@ class addPlaylistModal(discord.ui.Modal, title='Add playlist'):
                 # *DO NOT* leave this option enabled in production.
                 os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1"
 
-                client_secrets_file = "playlist\code_secret_client.json.json"
+                client_secrets_file = "playlist/code_secret_client.json.json"
 
                 # Get credentials and create an API client => déjà fait dans la fonction d'avant l.30
                 # flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
@@ -116,7 +116,7 @@ class addPlaylistModal(discord.ui.Modal, title='Add playlist'):
 
                 fieldnames = ['id']
                 playname = self.name.value
-                with open(f"playlist\youtube {playname}.csv", mode='w', newline='') as csv_file:
+                with open(f"playlist/youtube {playname}.csv", mode='w', newline='') as csv_file:
                     writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
                     for song in response["items"]:
                         writer.writerow(
@@ -126,7 +126,7 @@ class addPlaylistModal(discord.ui.Modal, title='Add playlist'):
         elif self.url.value.__contains__("https://open.spotify.com/artist/"):
             url = self.url.value.replace(
                 "https://open.spotify.com/artist/", "").split("?si=", 1)[0]
-            with open("playlist\\token.txt") as f:
+            with open("playlist//token.txt") as f:
                 TOKEN = str(f.readlines()).replace("['", "").replace("']", "")
             headers = {
                 "Accept": "application/json",
@@ -143,7 +143,7 @@ class addPlaylistModal(discord.ui.Modal, title='Add playlist'):
             tracks = []
             for track in data["tracks"]:
                 tracks.append(track["name"])
-            with open(f"playlist\spotify {playname} top 10 tracks.csv", mode='w', newline='',  encoding='utf-8') as csv_file:
+            with open(f"playlist/spotify {playname} top 10 tracks.csv", mode='w', newline='',  encoding='utf-8') as csv_file:
                 fieldnames = ['id']
                 writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
                 trackNumber = 0
@@ -180,7 +180,7 @@ class tokenModal(discord.ui.Modal, title="Token"):
     )
 
     async def on_submit(self, interaction: discord.Interaction):
-        with open("playlist\\token.txt", 'w') as f:
+        with open("playlist//token.txt", 'w') as f:
             f.write(self.token.value)
         await interaction.response.send_message(content="Merci! Tu peux mtn recommencer pour ajouter ta playlist", ephemeral=True)
 

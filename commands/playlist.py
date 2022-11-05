@@ -95,7 +95,7 @@ class Musique():
             await self.boucle_musique(self.ctx, self.choix_musique) # le chenapan qui revole
 
     def getMusiqueId(self): # Permet de récuperer une ligne au hasard d'une playlist
-        file = f"playlist\{self.asked_playlist}.csv"
+        file = f"playlist/{self.asked_playlist}.csv"
         with open(file=file) as f:
             musiqueId = None
             lineCount = 0
@@ -114,7 +114,7 @@ class Musique():
         self.asked_playlist = self.choix_musique
         if self.asked_playlist == "Aléatoire": # Si aléatoire était la demande, alors on prend une playlist aléatoire
             self.asked_playlist = str(random.choice(glob.glob("playlist/*.csv"))
-                                     ).replace("playlist\\", "").replace(".csv", "")
+                                     ).replace("playlist//", "").replace(".csv", "")
             self.replay = False
 
         if self.asked_playlist.__contains__("youtube"): # Destinée à être supprimé, ça vérifie si la playlist est une playlist youtube ou spotify mais personne n'utilise de playlist youtube
@@ -172,8 +172,8 @@ class playlistSelectView(discord.ui.View):
         for playlist in glob.glob("playlist/*.csv"):
             try:
                 self.add_item(discord.ui.Button(style=discord.ButtonStyle.blurple, label=str(playlist).replace(
-                "playlist\\", "").replace("spotify", "").replace(".csv", ""), custom_id=str(playlist).replace(
-                "playlist\\", "").replace(".csv", "")))
+                "playlist//", "").replace("spotify", "").replace(".csv", ""), custom_id=str(playlist).replace(
+                "playlist//", "").replace(".csv", "")))
             except:
                 print("Trop de playlists et pas assez de boutons je crois")
     async def interaction_check(self, interaction=discord.Interaction):
@@ -192,7 +192,7 @@ class playlistSelect(discord.ui.Select):
 
         for playlist in glob.glob("playlist/*.csv"):
                 self.add_option(label=str(playlist).replace(
-                    "playlist\\", "").replace(".csv", ""), description="⠀")
+                    "playlist//", "").replace(".csv", ""), description="⠀")
 
     async def callback(self, interaction: discord.Interaction):
         await Musique.boucle_musique(ctx = self.ctx, musique = self.values[0])

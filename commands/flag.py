@@ -39,7 +39,7 @@ class flagView(discord.ui.View):
             await interaction.response.edit_message(embed = embed, view= None)
 
         if response == 'next':
-            with open(r'csv_files\flag.csv', mode='r') as csv_file:
+            with open(r'csv_files/flag.csv', mode='r') as csv_file:
                 csv_reader = csv.DictReader(csv_file)
                 randomResult = random.randint(1, 258)
                 # On évite les répétitions
@@ -106,7 +106,7 @@ class flagView(discord.ui.View):
 @bot.tree.command(guild = discord.Object(id=769911179547246592), description="Flag Quizz (base de donnée avec 258 drapeaux!)")
 async def flag(interaction: discord.Interaction):
     question_used = []
-    with open(r'csv_files\flag.csv', mode='r') as csv_file:
+    with open(r'csv_files/flag.csv', mode='r') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         randomResult = random.randint(1, 258)
         randomFaux1 = random.randint(1, 258)

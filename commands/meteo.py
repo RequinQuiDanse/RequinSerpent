@@ -7,8 +7,7 @@ headers = {
 
 @bot.tree.command(description="Donne la méteo sur 1 semaine")
 async def meteo(interaction: discord.Interaction, city: str):
-    res = requests.get(f'https://www.google.com/search?q={city+ " weather".replace(" ", "+")}\
-      &oq={city}&aqs=chrome.0.35i3912j014j46jj69i60.6128j1j7&sourceid=chrome&ie=UTF-8', headers=headers)
+    res = requests.get(f'https://www.google.com/search?q={city+ " weather".replace(" ", "+")}\&oq={city}&aqs=chrome.0.35i3912j014j46jj69i60.6128j1j7&sourceid=chrome&ie=UTF-8', headers=headers)
     soup = BeautifulSoup(res.text, "html.parser")
 
     week_weather = soup.select("#wob_dp")[0].getText().strip()
