@@ -23,7 +23,7 @@ import not_commands.supp
 import not_commands.parle
 import not_commands.fool
 import not_commands.embed
-
+import commands.puissance_4
 @bot.event
 async def on_ready():
     print("Sync")
