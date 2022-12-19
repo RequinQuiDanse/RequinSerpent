@@ -2,7 +2,7 @@ from bot import bot, discord, commands
 
 LETTERS = "🇦 🇧 🇨 🇩 🇪 🇫 🇬"
 LETTERS_LIST = ["🇦", "🇧", "🇨", "🇩", "🇪", "🇫", "🇬"]
-BLACK_CASE = "⚫ "
+BLACK_CASE = "▫️ "
 RED_MARK = "🔴 "
 YELLOW_MARK = "🟡 "
 GREEN_MARK = "✅ "
