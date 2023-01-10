@@ -8,3 +8,9 @@ token.pickle
 not_commands
 .env
 lyrics.txt
+logs
+chatgpt.txt
+ia_img
+commands/gpt.bat
+*.csv
+csv_files/*.csv

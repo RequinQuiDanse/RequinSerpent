@@ -1,11 +1,9 @@
 # ENORME PRBLM AVEC LES BOUCLES, NOTAMMENT GETMUSIQUEID!
 import asyncio
 import glob
-import discord
 import youtube_dl
-from discord.ext import commands
 import random
-from bot import bot
+from bot import bot, discord, commands
 import lyricsgenius
 
 genius = lyricsgenius.Genius(
@@ -61,8 +59,7 @@ class Musique():
     """
     def __init__(self):
         pass
-    def __del__(self):
-        print("Object deleted")
+
     @classmethod
     async def boucle_musique(self, ctx, musique):  # Func cerveau
         self.ctx = ctx
@@ -87,12 +84,12 @@ class Musique():
                 return
 
         await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=player.title))
-        await self.getSong(self, str(player.title).replace("clip officiel",""))
+        #await self.getSong(self, str(player.title).replace("clip officiel",""))
 
         while self.voice.is_playing():  # Attend la fin de la musique
             await asyncio.sleep(1)
-        self.voice.stop()  # arrête de chanter
-        # change le statut du bot
+        self.voice.stop()  # arrête de chanter # change le statut du bot
+       
         await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name="Quoi?"))
 
         if (self.replay):  # si on joue une playlist => ça trouve une autre musique et ça rejoue
@@ -107,7 +104,7 @@ class Musique():
         return a random music name extracted from csv files
         """
         file = f"playlist\{self.asked_playlist}.csv"
-        with open(file=file) as f:
+        with open(file=file, encoding="utf-8") as f:
             musiqueId = None
             lineCount = 0
             for line in f:  # calcul le nombre de lignes en tout
@@ -115,7 +112,7 @@ class Musique():
             # choisit une ligne au hasard
             musiqueRand = random.randint(1, lineCount)
             lineCount = 0
-            with open(file=file) as f:
+            with open(file=file, encoding="utf-8") as f:
                 for line in f:
                     lineCount += 1
                     # Récupère les trucs stockés dans la ligne choisit précédemment
@@ -171,12 +168,14 @@ class Musique():
         """
         do all the stuff to encuse the bot's voice is well connected
         """
-        if self.ctx.voice_client is None:  # vérifie que le demandeur de musique est bien dans un salon vocal 
-            if self.ctx.author.voice: # si le bot n'est pas connecté, ça le connecte
+        if self.ctx.voice_client is None:  # si le bot n'est pas connecté, ça le connecte
+            print("self.ctx.voice_client is none")
+            if self.ctx.author.voice: # vérifie que le demandeur de musique est bien dans un salon vocal
                 await self.ctx.author.voice.channel.connect()
             else:
                 await self.ctx.send("Ta gueule mathis")
         elif self.ctx.voice_client.is_playing(): # Si le bot jouait de la musique au moment de l'appel, ça l'arrête
+            print(self.ctx.voice_client.is_playing())
             self.ctx.voice_client.stop()
         try:  # même moi jsais pas mais j'ai dû le faire sinon "voice is not defined"
             # print("voice réussie ligne 109 donc tu peux supp cette ligne")

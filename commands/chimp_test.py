@@ -55,8 +55,7 @@ class chimpButton(discord.ui.View):
             self.ordreCase = []
             self.findButton = []
             self.chimpButtonFunc()
-            await interaction.edit_original_message(content=int(time.time() - self.time), view=self)
-
+            await interaction.edit_original_response(content=int(time.time() - self.time), view=self)
     # Créateur du plateau
     def chimpButtonFunc(self):
         """
@@ -173,10 +172,8 @@ async def chimp_testscore(interaction: discord.Interaction):
     df.to_csv(file, index=False)
     with open(file, mode='r') as csv_file:
         csv_reader = csv.DictReader(csv_file)
-        line_count = 1
         embed = discord.Embed(title="Scores du Chimp Test")
         for row in csv_reader:
             embed.add_field(name=f"{row['name']}, score = {row['score']}",
                             value=f"= {row['points']} points en {row['time']} secondes.")
-            line_count += 1
     await interaction.response.send_message("Chimp Test", embed=embed)

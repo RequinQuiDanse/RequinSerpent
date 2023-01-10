@@ -52,7 +52,7 @@ class CrackResult(discord.ui.View):
         self.add_item(discord.ui.Button(label='SteamUnlocked',
                       url=steam+query))
 
-@bot.tree.command(guild = discord.Object(id=769911179547246592), description="Crack un jeu")
+@bot.tree.command(guild = discord.Object(id=769911179547246592), description="Cherches un crack + vite")
 async def crack(interaction: discord.Interaction):
     """
     cmd to search easily for a game's crack

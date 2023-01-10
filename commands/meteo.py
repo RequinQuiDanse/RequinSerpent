@@ -1,6 +1,7 @@
 from bot import bot, discord
 from bs4 import BeautifulSoup
 import requests
+from datetime import datetime
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; x64)\ AppleWebKit/537.36 (KHMTL, like GECKO) \ Chrome/58.0.3029.110 Safari/534.3"}
 
@@ -45,10 +46,11 @@ async def meteo(interaction: discord.Interaction, city: str = "Betz"):
     for element in temps:
         meteo.append(element["alt"])
 
-    embed = discord.Embed(title=f"Météo {city}", color=discord.Color.random())
+    embed = discord.Embed(title=f"Météo à {city}", color=discord.Color.random())
+    actual_day = int(str(datetime.now())[8:10])
     for x in range(8):
         embed.add_field(
-            name= f"{str(week[day])} {str(temp[x])} °", value = f"```{meteo[x]}```", inline = True)
+            name= f"{str(week[day])} {actual_day + x}", value = f"```{str(temp[x])}°, {meteo[x]}```", inline = True)
         day += 1
         if day == 7:
             day = 0

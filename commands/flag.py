@@ -7,6 +7,7 @@ class flagView(discord.ui.View):
     """
     class that do all the stuff
     """
+
     def __init__(self, userId, realFlagName, flagsOrder, embed, errorCounter, tourCounter, avatar, question_used):
         self.userId = userId
         self.realFlagName = realFlagName
@@ -16,7 +17,7 @@ class flagView(discord.ui.View):
         self.errorCounter = errorCounter
         self.tourCounter = tourCounter
         self.avatar = avatar
-        self.question_used = question_used # Pour éviter les répétitions
+        self.question_used = question_used  # Pour éviter les répétitions
         super().__init__(timeout=180)
         self.brain()
 
@@ -48,8 +49,9 @@ class flagView(discord.ui.View):
         response = interaction.data.get('custom_id')
         if response == 'stop':
             self.clear_items()
-            embed = discord.Embed(title=f"Flag Quizz   ```{self.tourCounter - self.errorCounter} sur {self.tourCounter} gg```").set_image(url=self.avatar)
-            await interaction.response.edit_message(embed = embed, view= None)
+            embed = discord.Embed(
+                title=f"Flag Quizz   ```{self.tourCounter - self.errorCounter} sur {self.tourCounter} gg```").set_image(url=self.avatar)
+            await interaction.response.edit_message(embed=embed, view=None)
 
         if response == 'next':
             with open(r'csv_files\flag.csv', mode='r') as csv_file:
@@ -80,11 +82,12 @@ class flagView(discord.ui.View):
                         falseflagName3 = row['realname']
                     line += 1
                 allFlagsNames = [realFlagName, falseflagName1,
-                                falseflagName2, falseflagName3]
+                                 falseflagName2, falseflagName3]
                 flagsOrder = random.sample(allFlagsNames, len(allFlagsNames))
                 self.tourCounter += 1
                 self.question_used.append(str(randomResult))
-                embed = discord.Embed(title=f"Flag Quizz   ```{self.tourCounter - self.errorCounter} sur {self.tourCounter}```").set_image(url=flag)
+                embed = discord.Embed(
+                    title=f"Flag Quizz   ```{self.tourCounter - self.errorCounter} sur {self.tourCounter}```").set_image(url=flag)
                 await interaction.response.edit_message(view=flagView(self.userId, realFlagName, flagsOrder, embed, self.errorCounter, self.tourCounter, self.avatar, self.question_used), embed=embed)
         count = 0
         if response == self.realFlagName:
@@ -116,7 +119,7 @@ class flagView(discord.ui.View):
         await interaction.response.edit_message(view=self, embed=self.embed)
 
 
-@bot.tree.command(guild = discord.Object(id=769911179547246592), description="Flag Quizz (base de donnée avec 258 drapeaux!)")
+@bot.tree.command(guild=discord.Object(id=769911179547246592), description="Flag Quizz (base de donnée avec 258 drapeaux!)")
 async def flag(interaction: discord.Interaction):
     """
     cmd that send a flag with 4 country names. user have to find wich is the good

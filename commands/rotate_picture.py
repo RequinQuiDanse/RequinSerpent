@@ -23,7 +23,7 @@ class rotateModal(discord.ui.Modal, title="Créer ton sondage"):
             img.save(filename=r"csv_files\photo-rotate.jpg")
             await interaction.response.send_message(file = discord.File(r"csv_files\photo-rotate.jpg"))
 
-@bot.tree.command(description="Fait tourner une image", guild= discord.Object(id=769911179547246592))
+@bot.tree.command(description="Fait tourner une image parce que des fois c relou", guild= discord.Object(id=769911179547246592))
 async def rotate_picture(interaction: discord.Interaction, img: discord.Attachment):
     """
     integrated-cmd that permit to rotate a picture and send a msg with it

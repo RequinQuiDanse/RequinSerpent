@@ -25,7 +25,7 @@ class akiButton(discord.ui.View):
                 embed.set_image(
                     url=f"{self.aki.first_guess['absolute_picture_path']}")
             except:
-                print('')
+                pass
             self.clear_items()
             embed.clear_fields()
             embed.add_field(name="Trouvé!", value=q)
@@ -49,7 +49,7 @@ class akiButton(discord.ui.View):
                 embed.set_image(
                     url=f"{self.aki.first_guess['absolute_picture_path']}")
             except:
-                print('')
+                pass
             self.clear_items()
             embed.clear_fields()
             embed.add_field(name="Trouvé!", value=q)
@@ -73,7 +73,7 @@ class akiButton(discord.ui.View):
                 embed.set_image(
                     url=f"{self.aki.first_guess['absolute_picture_path']}")
             except:
-                print('')
+                pass
             self.clear_items()
             embed.clear_fields()
             embed.add_field(name="Trouvé!", value=q)
@@ -97,7 +97,7 @@ class akiButton(discord.ui.View):
                 embed.set_image(
                     url=f"{self.aki.first_guess['absolute_picture_path']}")
             except:
-                print('')
+                pass
             self.clear_items()
             embed.clear_fields()
             embed.add_field(name="Trouvé!", value=q)
@@ -121,7 +121,7 @@ class akiButton(discord.ui.View):
                 embed.set_image(
                     url=f"{self.aki.first_guess['absolute_picture_path']}")
             except:
-                print('')
+                pass
             self.clear_items()  
             embed.clear_fields()
             embed.add_field(name="Trouvé!", value=q)
@@ -148,7 +148,7 @@ class akiButton(discord.ui.View):
                 embed.set_image(
                     url=f"{self.aki.first_guess['absolute_picture_path']}")
             except:
-                print('')
+                pass
             self.clear_items()  
             embed.clear_fields()
             embed.add_field(name="Trouvé!", value=q)

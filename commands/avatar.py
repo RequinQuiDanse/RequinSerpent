@@ -4,7 +4,6 @@ import random
 # https://docs.wand-py.org/en/0.6.7/index.html
 import os
 
-
 class guildSelect(discord.ui.Select):
     """
     create a select with a list of ppl preregistred. permit the user to select avatar from someone

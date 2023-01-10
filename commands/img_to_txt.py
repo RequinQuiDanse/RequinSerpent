@@ -6,7 +6,7 @@ from pytesseract import pytesseract
   
 # Defining paths to tesseract.exe
 # and the image we would be using
-path_to_tesseract = r"J:\Applications légères\Tessera\tesseract.exe"
+path_to_tesseract = r"D:\Applications légères\Tessera\tesseract.exe"
 
 @bot.tree.command(name='img_to_txt', guild=discord.Object(id=769911179547246592))
 async def img_to_txt(interaction: discord.Interaction, img: discord.Attachment):
@@ -21,14 +21,15 @@ async def img_to_txt(interaction: discord.Interaction, img: discord.Attachment):
             
         # Passing the image object to image_to_string() function
         # This function will extract the text from the image
-        text = pytesseract.image_to_string(r"csv_files\translate.jpg")
+        text = pytesseract.image_to_string(r"csv_files\translate.jpg").replace("\n", "")
+        
             
         # Displaying the extracted text
         #translateResult = translator.translate(text[:-1], dest = 'fr')
-        await interaction.followup.send(text[0:2000])    
-        if text[2000:4000]:
-                await interaction.channel.send(text[2000:4000])
-                if text[4000:6000]:
-                        await interaction.channel.send(text[4000:6000])
+        
+        x = 0
+        while text[x:x+1950]:
+                await interaction.channel.send(text[x:x+1950])
+                x += 1950
 
 

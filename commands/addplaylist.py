@@ -40,7 +40,7 @@ class addPlaylistModal(discord.ui.Modal, title='Add playlist'):
                 tracksInfo.append(song["track"]["artists"][0]["name"])
             r = requests.get(f"https://api.spotify.com/v1/playlists/{url}", headers=headers)
             data = r.json()
-            playname = data["name"]
+            playname = data["name"][:50].replace("'","")
             with open(f"playlist\spotify {playname}.csv", mode='w', newline='',  encoding='utf-8') as csv_file:
                 fieldnames = ['id']
                 writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
