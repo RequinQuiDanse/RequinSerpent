@@ -19,6 +19,11 @@ def make_request(artist):
             0].getText().strip()
     except:
         return 0
+    print(text)
+    if "Les meilleures phrases de" not in text:
+        return 0
+    artist = artist.replace("les-meilleures-phrases-de-","")
+
     citations_list = []
     temp_word = ""
     song = ""
@@ -28,7 +33,7 @@ def make_request(artist):
             temp_word += letters
         else:
             if "Source" in temp_word:
-                song = temp_word.split(":")[1][1:]
+                song = temp_word
                 temp_word = ""
             else:
                 word = temp_word
@@ -40,17 +45,18 @@ def make_request(artist):
     with open(rf'csv_files\rap_citation\{artist}.csv', mode='w', newline="", encoding="UTF-8") as csv_file:
         fieldnames = ['citation', 'artist']
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-        i = 0
         writer.writerow({'citation': fieldnames[0], 'artist': fieldnames[1]})
+        i = 0
         for infos in citations_list:
-            if i >7:
+            if i > 0:
+                song = infos[1].split(":")[1][1:]
                 try:
                     writer.writerow(
-                        {'citation': infos[0], 'artist': infos[1]})
+                        {'citation': infos[0], 'artist': song})
                 except:
                     print("Erreur pdnt csv de make_request()")
             else:
-                i+=1
+                i += 1
     return 1
     
 def get_citation(artist):
@@ -63,7 +69,7 @@ def get_citation(artist):
 
     if not os.path.exists(rf'csv_files\rap_citation\{artist}.csv'):
         if make_request(artist) != 1:
-            if make_request(artist) != 1:
+            if make_request(artist="les-meilleures-phrases-de-"+artist) != 1:
                 return 0
 
     citations_list = []
@@ -121,17 +127,11 @@ class Quizz_View(discord.ui.View):
         """
         self.good_answer = self.answers[0]
         self.random_song_order = random.sample(self.answers, len(self.answers))
-        print(self.random_song_order)
         self.clear_items()
-        self.add_item(discord.ui.Button(
-            style=discord.ButtonStyle.blurple, label=self.random_song_order[0], custom_id=self.random_song_order[0]))
-        self.add_item(discord.ui.Button(
-            style=discord.ButtonStyle.blurple, label=self.random_song_order[1], custom_id=self.random_song_order[1]))
-        self.add_item(discord.ui.Button(
-            style=discord.ButtonStyle.blurple, label=self.random_song_order[2], custom_id=self.random_song_order[2]))
-        self.add_item(discord.ui.Button(
-            style=discord.ButtonStyle.blurple, label=self.random_song_order[3], custom_id=self.random_song_order[3]))
-
+        for i in range(4):
+            if self.random_song_order[i] != "." and self.random_song_order[i] != ". " and self.random_song_order[i] != ".  ":
+                self.add_item(discord.ui.Button(
+                    style=discord.ButtonStyle.blurple, label=self.random_song_order[i], custom_id=self.random_song_order[i]))
 
     async def interaction_check(self, interaction=discord.Interaction):
         """
@@ -148,15 +148,16 @@ class Quizz_View(discord.ui.View):
             citation = answers.pop(0)
             await interaction.response.edit_message(content = citation, view=Quizz_View(answers, self.artist))
         elif response == self.good_answer:
-            for x in self.random_song_order:
-                if str(response) == str(x):
+            for i in self.random_song_order:
+                if str(response) == str(i):
                     self.add_item(discord.ui.Button(
                         style=discord.ButtonStyle.green, label=self.random_song_order[count], custom_id=self.random_song_order[count], disabled=True))
                     self.add_item(discord.ui.Button(
                         style=discord.ButtonStyle.primary, label='Next', custom_id='next', row=2))
                 else:
-                    self.add_item(discord.ui.Button(
-                        style=discord.ButtonStyle.blurple, label=self.random_song_order[count], custom_id=self.random_song_order[count], disabled=True))
+                    if self.random_song_order[count] != "." and self.random_song_order[count] != ". " and self.random_song_order[count] != ".  ":
+                        self.add_item(discord.ui.Button(
+                            style=discord.ButtonStyle.blurple, label=self.random_song_order[count], custom_id=self.random_song_order[count], disabled=True))
                 count += 1
         else:
             for x in self.random_song_order:
@@ -164,8 +165,9 @@ class Quizz_View(discord.ui.View):
                     self.add_item(discord.ui.Button(
                         style=discord.ButtonStyle.red, label=self.random_song_order[count], custom_id=self.random_song_order[count]))
                 else:
-                    self.add_item(discord.ui.Button(
-                        style=discord.ButtonStyle.blurple, label=self.random_song_order[count], custom_id=self.random_song_order[count]))
+                    if self.random_song_order[count] != "." and self.random_song_order[count] != ". " and self.random_song_order[count] != ".  ":
+                        self.add_item(discord.ui.Button(
+                            style=discord.ButtonStyle.blurple, label=self.random_song_order[count], custom_id=self.random_song_order[count]))
                 count += 1
         try:
             await interaction.response.edit_message(view=self)

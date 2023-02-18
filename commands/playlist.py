@@ -32,7 +32,7 @@ ytdl = youtube_dl.YoutubeDL(ytdl_format_options)
 
 
 class YTDLSource(discord.PCMVolumeTransformer):
-    def __init__(self, source, *, data, volume=0.5):
+    def __init__(self, source, *, data, volume=0.1):
         super().__init__(source, volume)
 
         self.data = data
@@ -173,7 +173,7 @@ class Musique():
             if self.ctx.author.voice: # vérifie que le demandeur de musique est bien dans un salon vocal
                 await self.ctx.author.voice.channel.connect()
             else:
-                await self.ctx.send("Ta gueule mathis")
+                return await self.ctx.send("Ta gueule mathis")
         elif self.ctx.voice_client.is_playing(): # Si le bot jouait de la musique au moment de l'appel, ça l'arrête
             print(self.ctx.voice_client.is_playing())
             self.ctx.voice_client.stop()

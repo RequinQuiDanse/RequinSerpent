@@ -30,6 +30,8 @@ import commands.not_commands.ultimate
 import commands.not_commands.parle
 import commands.not_commands.vids
 import commands.not_commands.supp
+import commands.not_commands.git
+
 @bot.event
 async def on_ready():
     #print("Sync")
