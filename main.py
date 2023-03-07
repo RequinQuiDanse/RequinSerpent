@@ -23,6 +23,7 @@ import commands.ia_img
 import commands.gpt
 import commands.puissance4
 import commands.rap_citation
+import commands.joueurs_commentaires
 import commands.not_commands.fool
 import commands.not_commands.embed
 import commands.not_commands.ultimate_quizz
@@ -35,7 +36,7 @@ import commands.not_commands.git
 @bot.event
 async def on_ready():
     #print("Sync")
-    await bot.tree.sync(guild = discord.Object(id=769911179547246592))
+    await bot.tree.sync(guild = None) # guild = discord.Object(id=769911179547246592)
 
     await asyncio.sleep(5)
     commands = []
