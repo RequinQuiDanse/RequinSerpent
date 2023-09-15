@@ -27,7 +27,7 @@ async def ia_img(interaction: discord.Interaction, sentence:str, img:discord.Att
             img = [discord.File(r"csv_files\ia_img\original_img.png"), discord.File(fr'csv_files\ia_img\{sentence[:133].replace(" ","_")}\seed_{seed}_{__seed}.png'), discord.File(fr'csv_files\ia_img\{sentence[:133].replace(" ","_")}\seed_{seed+1}_{str(_seed).replace(".","")}.png')]
             await interaction.followup.send(content = f"{sentence}, {round((int(time.time() - _time)/60),2)}min", files=img)
         else:
-            subprocess.run(fr'C:\Users\adamh\anaconda3\envs\ldm\python.exe D:\code\stable-diffusion\stable-diffusion\optimizedSD\optimized_txt2img.py --prompt "{sentence}" --seed {seed} --H 512 --W 512 --n_samples 1 --ddim_steps 50 --precision full --outdir "csv_files\ia_img"')
+            subprocess.run(fr'C:\Users\adamh\anaconda3\envs\ldm\python.exe D:\code\stable-diffusion\stable-diffusion\optimizedSD\optimized_txt2img.py --prompt "{sentence}" --seed {seed} --H 512 --W 512 --n_samples 2 --ddim_steps 50 --precision full --outdir "csv_files\ia_img"')
             _seed = "0.0000"
             for x in glob.glob(fr'csv_files\ia_img\{sentence[:133].replace(" ","_")}\*.png'):
                 _seed = float(_seed) + 0.0001

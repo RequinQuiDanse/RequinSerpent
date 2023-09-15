@@ -1,63 +1,7 @@
-import csv
 from bot import bot, discord
-from bs4 import BeautifulSoup
-import requests
+import csv
 from random import randint, sample
-import os.path
-
-def make_request(artist):
-    """
-    return a list of questions with their answers
-    """
-    res = requests.get(f'https://raplume.eu/citations/artists/{artist}')
-    soup = BeautifulSoup(res.text, "html.parser")
-
-    try:
-        text = soup.select(".theiaPostSlider_preloadedSlide")[
-            0].getText().strip()
-    except:
-        return 0
-    print(text)
-    if "Les meilleures phrases de" not in text:
-        return 0
-    artist = artist.replace("les-meilleures-phrases-de-","")
-
-    citations_list = []
-    temp_word = ""
-    song = ""
-
-    for letters in text:
-        if letters != '"':
-            temp_word += letters
-        else:
-            if "Source" in temp_word:
-                song = temp_word
-                temp_word = ""
-            else:
-                word = temp_word
-
-            if word != "" and song != "":
-                citations_list.append([word, song])
-                word, song = "", ""
-                
-    with open(rf'csv_files\rap_citation\{artist}.csv', mode='w', newline="", encoding="UTF-8") as csv_file:
-        fieldnames = ['citation', 'artist']
-        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
-        writer.writerow({'citation': fieldnames[0], 'artist': fieldnames[1]})
-        i = 0
-        for infos in citations_list:
-            if i > 0:
-                song = infos[1].split(":")[1][1:]
-                try:
-                    writer.writerow(
-                        {'citation': infos[0], 'artist': song})
-                except:
-                    print("Erreur pdnt csv de make_request()")
-            else:
-                i += 1
-    return 1
-    
-def get_citation(artist):
+def get_citation(reverse):
     """
     return all the infos needed for a quizz:
     1 question
@@ -65,17 +9,15 @@ def get_citation(artist):
     3 bad answers
     """
 
-    if not os.path.exists(rf'csv_files\rap_citation\{artist}.csv'):
-        if make_request(artist) != 1:
-            if make_request(artist="les-meilleures-phrases-de-"+artist) != 1:
-                return 0
-
     citations_list = []
-    with open(rf'csv_files\rap_citation\{artist}.csv', mode='r', encoding="UTF-8") as csv_file:
+    with open(rf'csv_files\all.csv', mode='r', encoding="UTF-8") as csv_file:
         csv_reader = csv.DictReader(csv_file)
         
         for row in csv_reader:
-            citations_list.append([row['citation'], row['artist']])
+            if reverse: 
+                citations_list.append([row['fr'], row['all']])
+            else:
+                citations_list.append([row['all'], row['fr']])
 
     random_number = randint(1, len(citations_list)-1)
     song_citation = citations_list[random_number][0]
@@ -96,11 +38,9 @@ def get_citation(artist):
     while citations_list[random_faux_3][1] == citations_list[random_number][1] or citations_list[random_faux_3][1] == citations_list[random_faux_1][1] or citations_list[random_faux_3][1] == citations_list[random_faux_2][1]:
         random_faux_3 = randint(1, len(citations_list)-1)
 
-    print([citations_list[random_faux_1][1],citations_list[random_faux_2][1],citations_list[random_faux_3][1]])
-   # juste un titre
-    false_song_1 = citations_list[random_faux_1][1] if len(citations_list[random_faux_1][1]) < 80 and "Source" not in citations_list[random_faux_1][1] else "."
-    false_song_2 = citations_list[random_faux_2][1] if len(citations_list[random_faux_2][1]) < 80 and "Source" not in citations_list[random_faux_2][1] else ". "
-    false_song_3 = citations_list[random_faux_3][1] if len(citations_list[random_faux_3][1]) < 80 and "Source" not in citations_list[random_faux_3][1] else ".  "
+    false_song_1 = citations_list[random_faux_1][1] if len(citations_list[random_faux_1][1]) < 80 else "."
+    false_song_2 = citations_list[random_faux_2][1] if len(citations_list[random_faux_2][1]) < 80 else ". "
+    false_song_3 = citations_list[random_faux_3][1] if len(citations_list[random_faux_3][1]) < 80 else ".  "
     
     return [song_citation, song_name, false_song_1, false_song_2, false_song_3]
 
@@ -108,14 +48,14 @@ class Quizz_View(discord.ui.View):
     """
     A View that can handle a quizz with 4 buttons and 1 good answer
     """
-    def __init__(self, answers, artist):
+    def __init__(self, answers, reverse):
         """
         Here you save every infos you need (good and bad answers)
         """
         super().__init__(timeout=180)
         self.answers = answers
-        self.artist = artist
         self.good_answer = ""
+        self.reverse = reverse
         self.buttons()
 
     def buttons(self):
@@ -142,9 +82,9 @@ class Quizz_View(discord.ui.View):
         count = 0
         response = interaction.data.get('custom_id')
         if response == 'next':
-            answers = get_citation(self.artist)
+            answers = get_citation(self.reverse)
             citation = answers.pop(0)
-            await interaction.response.edit_message(content = citation, view=Quizz_View(answers, self.artist))
+            await interaction.response.edit_message(content = citation, view=Quizz_View(answers, self.reverse))
         elif response == self.good_answer:
             for i in self.random_song_order:
                 if str(response) == str(i):
@@ -169,21 +109,18 @@ class Quizz_View(discord.ui.View):
                 count += 1
         try:
             await interaction.response.edit_message(view=self)
+
+
         except:
             pass
-@bot.tree.command(description="Testes tes connaissances en rap fr", guild = discord.Object(id=769911179547246592))
-async def citations(interaction: discord.Interaction, artist: str = "artist"):
-    artist = artist.lower()
-    ARTISTS = "Alpha Wann, Ash Kidd, Booba, Chilla, Damso, Dinos, Django, Dosseh, Doums, Doxx, Georgio, Hamza, Jazzy Bazz, Josman, Laylow, Lomepal, Lord Esperanza, Lonepsi, Nekfeu, Népal, Ninho, Orelsan, PLK, PNL, Prime, SCH, Sofiane, Vald, Zia"
-    if artist == "artist":
-        return await interaction.response.send_message(content= ARTISTS)
-    elif artist not in ARTISTS.lower():
-        return await interaction.response.send_message(content= "L'artist n'est pas répertorié dsl", ephemeral=True)
+
+
+
+@bot.tree.command(description="Permet ptet d'apprendre", guild = discord.Object(id=769911179547246592))
+async def all_quizz(interaction: discord.Interaction, reverse:bool = False):
 
     await interaction.response.defer()
-    answers = get_citation(artist)
-    if answers == 0:
-        return await interaction.followup.send(content= "Erreur pdnt le scraping tu site dsl", ephemeral=True)
+    answers = get_citation(reverse)
 
     citation = answers.pop(0)
-    await interaction.followup.send(content = citation, view=Quizz_View(answers, artist))
+    await interaction.followup.send(content = citation, view=Quizz_View(answers, reverse))

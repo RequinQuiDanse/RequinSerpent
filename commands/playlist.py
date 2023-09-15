@@ -2,6 +2,7 @@
 import asyncio
 import glob
 import youtube_dl
+# import yt_dlp as youtube_dl
 import random
 from bot import bot, discord, commands
 import lyricsgenius
@@ -15,6 +16,7 @@ ytdl_format_options = {
     'format': 'bestaudio/best',    'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
     'restrictfilenames': True,
     'noplaylist': True,
+    # 'extractor_retries': 'auto',
 
     'nocheckcertificate': True,
     'ignoreerrors': False,
@@ -65,6 +67,7 @@ class Musique():
         self.ctx = ctx
         self.choix_musique = str(musique).replace("(", "").replace(")",
                                                                    "").replace("'", "").replace(",", "")
+        self.asked_playlist = self.choix_musique
         self.replay = False
         self.random = False
 
@@ -72,6 +75,7 @@ class Musique():
         self.url_musique, self.replay = await self.getUrl(self)
         print(self.url_musique)
 
+        self.voice = self.ctx.voice_client
         await self.ensure_voice(self)  # étape pour bien connecté le bot
 
         player = await YTDLSource.from_url(self.url_musique, loop=bot.loop, stream=True)
@@ -82,7 +86,9 @@ class Musique():
         except discord.errors.ClientException as e:
             if str(e) == "Already playing audio.":
                 return
-
+            # self.voice = self.ctx.voice_client
+            
+            return print(e)
         await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=player.title))
         #await self.getSong(self, str(player.title).replace("clip officiel",""))
 
@@ -125,7 +131,6 @@ class Musique():
         return a youtube url or a music name, depends on what is asked
         also manage if a playlist is asked or no
         """
-        self.asked_playlist = self.choix_musique
         if self.asked_playlist == "Aléatoire":  # Si aléatoire était la demande, alors on prend une playlist aléatoire
             self.asked_playlist = str(random.choice(glob.glob("playlist/*.csv"))
                                      ).replace("playlist\\", "").replace(".csv", "")
@@ -164,6 +169,7 @@ class Musique():
                 f.write(str(song.lyrics))
             await self.ctx.reply(file = discord.File(r'csv_files\lyrics.txt'), delete_after=300, view = Lyrics_Button(), ephemeral = True)
 
+
     async def ensure_voice(self): # Etape obligatoire permettant de ne pas créer de conflit
         """
         do all the stuff to encuse the bot's voice is well connected
@@ -174,6 +180,7 @@ class Musique():
                 await self.ctx.author.voice.channel.connect()
             else:
                 return await self.ctx.send("Ta gueule mathis")
+        
         elif self.ctx.voice_client.is_playing(): # Si le bot jouait de la musique au moment de l'appel, ça l'arrête
             print(self.ctx.voice_client.is_playing())
             self.ctx.voice_client.stop()

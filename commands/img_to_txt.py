@@ -28,6 +28,7 @@ async def img_to_txt(interaction: discord.Interaction, img: discord.Attachment):
         #translateResult = translator.translate(text[:-1], dest = 'fr')
         
         x = 0
+        await interaction.followup.send(content=img)
         while text[x:x+1950]:
                 await interaction.channel.send(text[x:x+1950])
                 x += 1950
