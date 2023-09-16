@@ -9,10 +9,10 @@ async def gpt(interaction: discord.Interaction, msg: str):
     """
     await interaction.response.defer()
     with open("commands\gpt.bat", mode="w", encoding="utf-8") as f:
-        f.write(f"chatgpt {msg} > csv_files\chatgpt.txt")
+        f.write(f"chatgpt {msg} > csv_files/chatgpt.txt")
     subprocess.run("commands\gpt.bat")
     sleep(2)
-    with open("csv_files\chatgpt.txt", mode="r", encoding="utf-8", errors='ignore') as f:
+    with open("csv_files/chatgpt.txt", mode="r", encoding="utf-8", errors='ignore') as f:
         answer = ""
         for lines in f.readlines():
             answer += lines

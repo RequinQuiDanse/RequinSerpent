@@ -133,10 +133,10 @@ class chimpButton(discord.ui.View):
         """
         register the score in the csv file
         """
-        with open('csv_files\chimpdata.csv', mode='a') as csv_file:
-            df = pd.read_csv('csv_files\chimpdata.csv')
+        with open('csv_files/chimpdata.csv', mode='a') as csv_file:
+            df = pd.read_csv('csv_files/chimpdata.csv')
             df = df[df.score > 500]
-            df.to_csv('csv_files\chimpdata.csv', index=False)
+            df.to_csv('csv_files/chimpdata.csv', index=False)
             fieldnames = ['name', 'points', 'time', 'score']
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
             try:
@@ -166,7 +166,7 @@ async def chimp_testscore(interaction: discord.Interaction):
     """
     cmd that delete all scores lower than 600, and send a msg with scores
     """
-    file = 'csv_files\chimpdata.csv'
+    file = 'csv_files/chimpdata.csv'
     df = pd.read_csv(file)
     df = df[df.score > 600]
     df.to_csv(file, index=False)

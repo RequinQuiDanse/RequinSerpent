@@ -50,11 +50,11 @@ class flagView(discord.ui.View):
         if response == 'stop':
             self.clear_items()
             embed = discord.Embed(
-                title=f"Flag Quizz   ```{self.tourCounter - self.errorCounter} sur {self.tourCounter} gg```").set_image(url=self.avatar)
+                title=f"Flag Quizz   ```{self.tourCounter - self.errorCounter} sur {self.tourCounter+1} gg```").set_image(url=self.avatar)
             await interaction.response.edit_message(embed=embed, view=None)
 
         if response == 'next':
-            with open(r'csv_files\flag.csv', mode='r') as csv_file:
+            with open(r'csv_files/flag.csv', mode='r') as csv_file:
                 csv_reader = csv.DictReader(csv_file)
                 randomResult = random.randint(1, 258)
                 # On évite les répétitions
@@ -125,7 +125,7 @@ async def flag(interaction: discord.Interaction):
     cmd that send a flag with 4 country names. user have to find wich is the good
     """
     question_used = []
-    with open(r'csv_files\flag.csv', mode='r') as csv_file:
+    with open(r'csv_files/flag.csv', mode='r') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         randomResult = random.randint(1, 258)
         randomFaux1 = random.randint(1, 258)

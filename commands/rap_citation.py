@@ -40,7 +40,7 @@ def make_request(artist):
                 citations_list.append([word, song])
                 word, song = "", ""
                 
-    with open(rf'csv_files\rap_citation\{artist}.csv', mode='w', newline="", encoding="UTF-8") as csv_file:
+    with open(rf'csv_files/rap_citation\{artist}.csv', mode='w', newline="", encoding="UTF-8") as csv_file:
         fieldnames = ['citation', 'artist']
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         writer.writerow({'citation': fieldnames[0], 'artist': fieldnames[1]})
@@ -65,13 +65,13 @@ def get_citation(artist):
     3 bad answers
     """
 
-    if not os.path.exists(rf'csv_files\rap_citation\{artist}.csv'):
+    if not os.path.exists(rf'csv_files/rap_citation\{artist}.csv'):
         if make_request(artist) != 1:
             if make_request(artist="les-meilleures-phrases-de-"+artist) != 1:
                 return 0
 
     citations_list = []
-    with open(rf'csv_files\rap_citation\{artist}.csv', mode='r', encoding="UTF-8") as csv_file:
+    with open(rf'csv_files/rap_citation\{artist}.csv', mode='r', encoding="UTF-8") as csv_file:
         csv_reader = csv.DictReader(csv_file)
         
         for row in csv_reader:

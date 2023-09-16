@@ -42,8 +42,8 @@ def chercher_info_csv(nom_fichier, blaze):
     return None
 
 
-CLUB = r"csv_files\club_team.csv"
-JOUEURS_COMMENTAIRE_CSV = r"csv_files\joueurs_commentaires.csv"
+CLUB = r"csv_files/club_team.csv"
+JOUEURS_COMMENTAIRE_CSV = r"csv_files/joueurs_commentaires.csv"
 
 
 @bot.tree.command(description="Ultimate player infos")
@@ -51,10 +51,7 @@ async def player_data(interaction: discord.Interaction):
     """
     cmd to randomly make teams, depends on how much the user wants teams
     """
-    club_players = pd.read_csv(CLUB)["club"]
-    embed = discord.Embed(color=discord.Color.random(), title="Joueurs")
-    embed.add_field(name="```Joueurs:```", value=f'```bash\n"\n' +
-                    "\n".join(club_players)+'\n"```', inline=True)
+    embed = get_player_embed()
 
     await interaction.response.send_message(embed=embed, view=player_data_action())
 
@@ -70,6 +67,11 @@ class player_data_action(discord.ui.View):
     @discord.ui.button(label='Choisi un joueur', style=discord.ButtonStyle.green)
     async def choose_player(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.send_modal(choose_player_modal())
+
+    @discord.ui.button(label='Menu', style=discord.ButtonStyle.green)
+    async def menu(self, interaction: discord.Interaction, button: discord.ui.Button):
+        embed = get_player_embed()
+        await interaction.response.edit_message(embed=embed, view=player_data_action())
 
 
 class choose_player_modal(discord.ui.Modal, title="Quel joueur veux tu "):
@@ -126,3 +128,10 @@ class player_data_edit(discord.ui.Modal, title="Modifies les infos d'un joueur")
                         "\n".join(message)+'\n"```', inline=True)
         
         await interaction.response.edit_message(embed=embed)
+
+def get_player_embed():
+    club_players = pd.read_csv(CLUB)["club"]
+    embed = discord.Embed(color=discord.Color.random(), title="Joueurs")
+    embed.add_field(name="```Joueurs:```", value=f'```bash\n"\n' +
+                    "\n".join(club_players)+'\n"```', inline=True)
+    return embed

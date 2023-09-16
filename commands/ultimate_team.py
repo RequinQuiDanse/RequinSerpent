@@ -2,8 +2,8 @@ from bot import bot, discord
 import random
 import pandas as pd  # comme mathis
 
-as_team = r"csv_files\as_team.csv"
-club_team = r"csv_files\club_team.csv"
+as_team = r"csv_files/as_team.csv"
+club_team = r"csv_files/club_team.csv"
 
 
 

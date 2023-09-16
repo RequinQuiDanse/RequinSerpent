@@ -10,7 +10,7 @@ def get_citation(reverse):
     """
 
     citations_list = []
-    with open(rf'csv_files\all.csv', mode='r', encoding="UTF-8") as csv_file:
+    with open(rf'csv_files/all.csv', mode='r', encoding="UTF-8") as csv_file:
         csv_reader = csv.DictReader(csv_file)
         
         for row in csv_reader:

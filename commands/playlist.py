@@ -183,10 +183,10 @@ class Musique:
         """
         song = genius.search_song(_song.lower().replace("audio", ""))
         if song != None:
-            with open(r"csv_files\lyrics.txt", "w", encoding="utf-8") as f:
+            with open(r"csv_files/lyrics.txt", "w", encoding="utf-8") as f:
                 f.write(str(song.lyrics))
             await self.ctx.reply(
-                file=discord.File(r"csv_files\lyrics.txt"),
+                file=discord.File(r"csv_files/lyrics.txt"),
                 delete_after=300,
                 view=Lyrics_Button(),
                 ephemeral=True,
@@ -235,7 +235,7 @@ class Lyrics_Button(discord.ui.View):
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         await interaction.response.send_message(
-            file=discord.File(r"csv_files\lyrics.txt")
+            file=discord.File(r"csv_files/lyrics.txt")
         )
 
 
