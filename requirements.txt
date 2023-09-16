@@ -1,0 +1,11 @@
+numpy
+youtube_dl
+lyricsgenius
+praw
+wand
+googletrans
+pandas
+akinator
+pytesseract
+requests
+discord.py[voice]

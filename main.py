@@ -19,7 +19,7 @@ import commands.img_to_txt
 import commands.meteo
 import commands.rotate_picture
 import commands.ultimate_team
-import commands.ia_img
+# import commands.ia_img
 import commands.gpt
 import commands.puissance4
 import commands.rap_citation
@@ -42,16 +42,15 @@ async def on_ready():
     await asyncio.sleep(5)
     commands = []
     for x in glob.glob("commands/*.py"):
-        commands.append(x)
-
+        commands.append(x.replace("\\","/"))
     while True:
         ma_guild = bot.get_guild(769911179547246592)
         try:
             if str(ma_guild.me.activity.type) != "ActivityType.listening" :
-                activ = '/' + str(random.choice(commands)).replace("commands\\","").replace(".py","")
+                activ = '/' + str(random.choice(commands)).replace("commands/","").replace(".py","")
                 await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.competing, name=activ))
         except:
-            activ = '/' + str(random.choice(commands)).replace("commands\\","").replace(".py","")
+            activ = '/' + str(random.choice(commands)).replace("commands/","").replace(".py","")
             await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.competing, name=activ))
         await asyncio.sleep(150)
 

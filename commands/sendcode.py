@@ -32,7 +32,8 @@ class sendCodeSelect(discord.ui.Select):
         ]
         super().__init__(placeholder="Quel code veux tu?", min_values=1, max_values=1, options = options)
         for cmd in glob.glob("commands/*.py"):
-            self.add_option(label = cmd.replace("commands\\",""), description= "⠀")
+            cmd = cmd.replace("commands/","").replace("\\","/")
+            self.add_option(label = cmd, description= "⠀")
 
     async def callback(self, interaction: discord.Interaction):
         await interaction.response.send_message(content = "```fix\n" + f"{self.values[0]}```"+ "\n(Cliques sur la double flèche pour voir tout le code)",file=discord.File(f"commands/{self.values[0]}"))
