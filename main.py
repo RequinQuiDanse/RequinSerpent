@@ -29,9 +29,9 @@ import commands.puissance4
 import commands.rap_citation
 import commands.joueurs_commentaires
 import commands.general_quizz
-
+from commands.poulytopia import main_commands
 if os.name =="nt":
-    import commands.ia_img
+    # import commands.ia_img
     import commands.not_commands.fool
     import commands.not_commands.embed
     import commands.not_commands.ultimate_quizz
