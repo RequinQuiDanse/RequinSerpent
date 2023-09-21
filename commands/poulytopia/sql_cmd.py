@@ -1,6 +1,6 @@
 import sqlite3
 from sqlite3 import Error
-path = "commands\poulytopia\poulytopia.db"
+path = "commands/poulytopia/poulytopia.db"
 def create_connection(path):
     connection = None
     try:
@@ -70,7 +70,7 @@ def get_last_tirage(cur, fermier_id):
     return res
 
 def get_random_poule(cur):
-    res = do_sql(cur, f"SELECT poule_name, price, production FROM poules ORDER BY RANDOM() LIMIT 1;").fetchone()
+    res = do_sql(cur, f"SELECT * FROM poules ORDER BY RANDOM() LIMIT 1;").fetchone()
     return res
 
 def register_tirage(cur, con, fermier_id, now):

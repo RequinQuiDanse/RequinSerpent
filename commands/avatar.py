@@ -46,7 +46,7 @@ class guildSelect(discord.ui.Select):
         guild = bot.get_guild(769911179547246592)
         x = await guild.fetch_member(self.values[0])
         avatar = str(x.avatar)
-        embed = discord.Embed(color = discord.Colour.dark_magenta(), title= x.name).set_image(url=avatar)
+        embed = discord.Embed(color = discord.Colour.dark_magenta(), title= x.name).    mage(url=avatar)
         await interaction.response.send_message(embed=embed, view=photoButton(x))
 
 
