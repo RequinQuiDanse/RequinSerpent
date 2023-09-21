@@ -47,6 +47,7 @@ async def daily_poule(interaction: discord.Interaction):
     """
     cmd to daily chance to get a poule
     """
+    await interaction.response.defer()
     fermier_id = interaction.user.id
     fermier_exist(cur, con, fermier_id)
 
@@ -56,17 +57,16 @@ async def daily_poule(interaction: discord.Interaction):
     if last_tirage!='0':
         diff = (now - last_tirage).total_seconds() 
         if diff < 10:
-            await interaction.response.send_message(content=f"Le dernier tirage de date que de {round(diff)} secondes, attends encore :)", ephemeral=True)
-            return
+            return await interaction.response.send_message(content=f"Le dernier tirage de date que de {round(diff)} secondes, attends encore :)", ephemeral=True)
     
     register_tirage(cur, con, fermier_id, now)
     random_poule = get_random_poule(cur)
 
-    embed = discord.Embed(title=f"Tu as gagné la poule {random_poule[0]}:)").set_image(url = f"attachment://{random_poule[3]}")
-    print(random_poule[3])
+    embed = discord.Embed(title=f"Daily poule: {random_poule[0]}:)")
+    embed.set_image(url = f"attachment://{random_poule[3]}")
     file = discord.File(f"commands/poulytopia/pictures/{random_poule[3]}", filename=random_poule[3])
 
-    await interaction.response.send_message(file=file, embed=embed, ephemeral=True, view=Daily_Button(random_poule))
+    await interaction.followup.send(file=file, embed=embed, ephemeral=True, view=Daily_Button(random_poule, fermier_id))
 
 
 # class Poulailler_Buttons(discord.ui.View):
@@ -88,16 +88,19 @@ class Daily_Button(discord.ui.View):
     """
     to gain a poule
     """
-    def __init__(self, random_poule):
+    def __init__(self, random_poule,fermier_id):
         super().__init__()
         self.poule_name = random_poule[0]
         self.poule_price = random_poule[1]
         self.poule_production = random_poule[2]
         self.poule_path = random_poule[3]
+        self.fermier_id = fermier_id
 
-    @discord.ui.button(label='Next', style=discord.ButtonStyle.gray)
-    async def prendre_poule(self, interaction: discord.Interaction):
-
+    @discord.ui.button(label='Prendre la poule', style=discord.ButtonStyle.gray)
+    async def prendre_poule(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await interaction.response.defer()
+        add_poule(cur, con, self.poule_name, self.fermier_id)
         embed = discord.Embed(title=f"Tu as gagné la poule {self.poule_name}:)")
-        embed.set_image(url= f"commands/poulytopia/pictures/{self.poule_path}")
-        await interaction.response.edit_message(attachments=[discord.File(f"commands/poulytopia/pictures/{self.poule_path}")], embed = embed)
+        embed.set_image(url = f"attachment://{self.poule_path}")
+        file = discord.File(f"commands/poulytopia/pictures/{self.poule_path}", filename=self.poule_path)
+        await interaction.followup.edit_message(message_id= interaction.message.id, attachments=[file], embed = embed)
