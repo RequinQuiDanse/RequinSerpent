@@ -71,9 +71,22 @@ def get_last_tirage(cur, fermier_id):
 
 def get_random_poule(cur):
     res = do_sql(cur, f"SELECT * FROM poules ORDER BY RANDOM() LIMIT 1;").fetchone()
+    res = {
+        "poule_name": res[0],
+        "price": res[1],
+        "production": res[2],
+        "path": res[3]
+    }
     return res
 
 def register_tirage(cur, con, fermier_id, now):
     res = do_sql(cur, f"UPDATE fermiers SET last_tirage = '{now}' WHERE fermier_id = {fermier_id}")
     con.commit()
+    return res
+
+def get_poulailler_data(cur, fermier_id):
+    res = {
+        "amount":do_sql(cur, f"SELECT COUNT(*) FROM poulaillers WHERE fermier_id = {fermier_id}").fetchone()[0],
+        "value":do_sql(cur, f"SELECT SUM(poules.price) FROM poules JOIN poulaillers ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id}").fetchone()[0]
+    }
     return res
