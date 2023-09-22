@@ -1,7 +1,7 @@
 from bot import bot, discord
 from commands.poulytopia.sql_cmd import *
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 
 con = create_connection(path=path)
 cur = con.cursor()
@@ -14,17 +14,20 @@ async def poulailler(interaction: discord.Interaction):
     """
     cmd to show your poulailler
     """
+    now = datetime.now()
     await interaction.response.defer()
     fermier_id = interaction.user.id
-    fermier_exist(cur, con, fermier_id)
+    fermier_exist(cur, con, fermier_id, now)
 
     embed = discord.Embed(title="Ton poulailler")
     poulailler = get_poulailler(cur, fermier_id)
     poulailler_data = get_poulailler_data(cur, fermier_id)
     if len(poulailler) != 0:
         poule = poulailler[0]
-        embed.add_field(name=f"**{poule['poule_name']}**", value="", inline=False)
-        embed.add_field(name="Prix de la poule:", value=f"**{poule['price']}**🥚")
+        embed.add_field(
+            name=f"**{poule['poule_name']}**", value="", inline=False)
+        embed.add_field(name="Prix de la poule:",
+                        value=f"**{poule['price']}**🥚")
         embed.add_field(
             name="Production journalière de la poule d'oeufs:",
             value=f"**{poule['production']}**🥚",
@@ -33,14 +36,15 @@ async def poulailler(interaction: discord.Interaction):
         file = discord.File(
             f"commands/poulytopia/pictures/{poule['path']}", filename=poule["path"]
         )
-        embed.set_footer(text=f"{1}/{poulailler_data['amount']} poules      Valeur du poulailler:{poulailler_data['value']}🥚")
+        embed.set_footer(
+            text=f"{1}/{poulailler_data['amount']} poules      Valeur des poules à la vente:{poulailler_data['value']}🥚")
 
-        await interaction.followup.send(file=file, embed=embed, view=Poulailler_Buttons(poulailler, poulailler_data)
-        )
+        await interaction.followup.send(file=file, embed=embed, view=Poulailler_Buttons(poulailler, poulailler_data, fermier_id)
+                                        )
     else:
         embed.add_field(name="Tu n'as aucune poule", value="Aucune ")
         await interaction.followup.send(embed=embed
-        )
+                                        )
 
 
 @bot.tree.command(
@@ -93,16 +97,16 @@ async def daily_poule(interaction: discord.Interaction):
     """
     cmd to daily chance to get a poule
     """
+    now = datetime.now()
     await interaction.response.defer()
     fermier_id = interaction.user.id
-    fermier_exist(cur, con, fermier_id)
+    fermier_exist(cur, con, fermier_id, now)
 
-    now = datetime.now()
-    last_tirage = get_last_tirage(cur, fermier_id).fetchone()[0]
-    last_tirage = datetime.strptime(last_tirage, "%Y-%m-%d %H:%M:%S.%f")
+    last_tirage = get_last_tirage(cur, fermier_id)
     if last_tirage != "0":
+        last_tirage = datetime.strptime(last_tirage, "%Y-%m-%d %H:%M:%S.%f")
         diff = (now - last_tirage).total_seconds()
-        if diff < 10:
+        if diff < 3600:
             return await interaction.response.send_message(
                 content=f"Le dernier tirage de date que de {round(diff)} secondes, attends encore :)",
                 ephemeral=True,
@@ -131,14 +135,16 @@ class Poulailler_Buttons(discord.ui.View):
     create all the buttons
     """
 
-    def __init__(self, poulailler, poulailler_data):
+    def __init__(self, poulailler, poulailler_data, fermier_id):
         super().__init__()
         self.poulailler = poulailler
         self.poule_place = 0
         self.poulailler_data = poulailler_data
+        self.fermier_id = fermier_id
 
     @discord.ui.button(label="⬅", style=discord.ButtonStyle.blurple)
-    async def back(self, interaction: discord.Interaction, buttons:discord.ui.Button):
+    async def back(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        await interaction.response.defer()
         self.poule_place -= 1
         if self.poule_place < 0:
             self.poule_place = len(self.poulailler)-1
@@ -146,7 +152,8 @@ class Poulailler_Buttons(discord.ui.View):
         embed = discord.Embed(
             title=f"**{poule['poule_name']}**"
         )
-        embed.add_field(name="Prix de la poule:", value=f"**{poule['price']}**🥚")
+        embed.add_field(name="Prix de la poule:",
+                        value=f"**{poule['price']}**🥚")
         embed.add_field(
             name="Production journalière de la poule d'oeufs:",
             value=f"**{poule['production']}**🥚",
@@ -156,15 +163,18 @@ class Poulailler_Buttons(discord.ui.View):
             f"commands/poulytopia/pictures/{poule['path']}",
             filename=poule["path"],
         )
-        embed.set_footer(text=f"{self.poule_place+1}/{self.poulailler_data['amount']} poules      Valeur du poulailler:{self.poulailler_data['value']}🥚")
-        await interaction.response.edit_message(
+        embed.set_footer(
+            text=f"{self.poule_place+1}/{self.poulailler_data['amount']} poules      Valeur des poules à la vente:{self.poulailler_data['value']}🥚")
+        await interaction.followup.edit_message(
+            message_id=interaction.message.id,
             attachments=[file],
             embed=embed,
             view=self,
         )
 
     @discord.ui.button(label="➡", style=discord.ButtonStyle.blurple)
-    async def next(self, interaction: discord.Interaction, buttons:discord.ui.Button):
+    async def next(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        await interaction.response.defer()
         self.poule_place += 1
         if self.poule_place >= len(self.poulailler):
             self.poule_place = 0
@@ -172,7 +182,8 @@ class Poulailler_Buttons(discord.ui.View):
         embed = discord.Embed(
             title=f"**{poule['poule_name']}**"
         )
-        embed.add_field(name="Prix de la poule:", value=f"**{poule['price']}**🥚")
+        embed.add_field(name="Prix de la poule:",
+                        value=f"**{poule['price']}**🥚")
         embed.add_field(
             name="Production journalière de la poule d'oeufs:",
             value=f"**{poule['production']}**🥚",
@@ -182,36 +193,65 @@ class Poulailler_Buttons(discord.ui.View):
             f"commands/poulytopia/pictures/{poule['path']}",
             filename=poule["path"],
         )
-        embed.set_footer(text=f"{self.poule_place+1}/{self.poulailler_data['amount']} poules      Valeur du poulailler:{self.poulailler_data['value']}🥚")
+        embed.set_footer(
+            text=f"{self.poule_place+1}/{self.poulailler_data['amount']} poules      Valeur des poules à la vente:{self.poulailler_data['value']}🥚")
 
-        await interaction.response.edit_message(
+        await interaction.followup.edit_message(
+            message_id=interaction.message.id,
             attachments=[file],
             embed=embed,
             view=self,
         )
 
     @discord.ui.button(label="Vendre", style=discord.ButtonStyle.green)
-    async def sell(self, interaction: discord.Interaction, buttons:discord.ui.Button):
-                
+    async def sell(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        await interaction.response.defer()
         poule = self.poulailler[self.poule_place]
+        sell_poule(cur, con, self.fermier_id, poule['poule_name'])
+        gain_money(cur, con, self.fermier_id, poule['price'])
+        actuel_money = get_my_money(cur, self.fermier_id)
         embed = discord.Embed(
-            title=f"**{poule['poule_name']}**"
+            title=f"**Transaction effectuée**"
         )
-        embed.add_field(name="Prix de la poule:", value=f"**{poule['price']}**🥚")
         embed.add_field(
-            name="Production journalière de la poule d'oeufs:",
-            value=f"**{poule['production']}**🥚",
+            name="Poule vendue:",
+            value=f"**{poule['poule_name']}**",
         )
-        embed.set_image(url=f"attachment://{poule['path']}")
-        file = discord.File(
-            f"commands/poulytopia/pictures/{poule['path']}",
-            filename=poule["path"],
+        embed.add_field(
+            name="Argent gagné:",
+            value=f"**{poule['price']}**🥚"
         )
-        await interaction.response.edit_message(
-            attachments=[file],
+        embed.add_field(
+            name="Argent total:",
+            value=f"{actuel_money}🥚"
+        )
+        await interaction.followup.edit_message(
+            message_id=interaction.message.id,
             embed=embed,
-            view=self,
+            attachments=[],
+            view=None
         )
+
+    @discord.ui.button(label="Récolte d'🥚", style=discord.ButtonStyle.green)
+    async def take_oeufs(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        await interaction.response.defer()
+        now = datetime.now()
+
+        last_harvest = get_last_harvest(cur, self.fermier_id)
+        last_harvest = datetime.strptime(last_harvest, "%Y-%m-%d %H:%M:%S.%f")
+        diff = (now - last_harvest).total_seconds()
+        hours = diff//3600
+        oeufs_produits = 0
+        if hours > 0:
+            poule_prod = self.poulailler_data['production']
+            oeufs_produits += poule_prod * hours
+            now = now - timedelta(seconds=diff % 3600)
+            register_harvest(cur, con, self.fermier_id, now)
+        embed = discord.Embed(title=f"Résultat de la récolte d'oeufs")
+        embed.add_field(name="Nombre d'oeufs récupérés:",
+                        value=f"**{oeufs_produits}**🥚 produits en {hours}heurs et {round(diff%3600/60)}minutes")
+        await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed, view=None, attachments=[]
+                                                )
 
 
 class Daily_Button(discord.ui.View):
@@ -229,11 +269,21 @@ class Daily_Button(discord.ui.View):
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         await interaction.response.defer()
-        add_poule(cur, con, self.poule["poule_name"], self.fermier_id)
+        res = add_poule(cur, con, self.poule["poule_name"], self.fermier_id)
+        if type(res) == str:
+            return await interaction.followup.edit_message(
+                message_id=interaction.message.id,
+                attachments=[],
+                embed=None,
+                view=None,
+                content="Tu n'as plus de place dans le poulailler"
+            )
+
         embed = discord.Embed(
             title=f"Tu as gagné la poule {self.poule['poule_name']}:)"
         )
-        embed.add_field(name="Prix de la poule:", value=f"**{self.poule['price']}**🥚")
+        embed.add_field(name="Prix de la poule:",
+                        value=f"**{self.poule['price']}**🥚")
         embed.add_field(
             name="Production journalière de la poule d'oeufs:",
             value=f"**{self.poule['production']}**🥚",
