@@ -90,3 +90,12 @@ def get_poulailler_data(cur, fermier_id):
         "value":do_sql(cur, f"SELECT SUM(poules.price) FROM poules JOIN poulaillers ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id}").fetchone()[0]
     }
     return res
+
+def sell_poule(cur, con, fermier_id, poule_name, value):
+    res = do_sql(cur, f"DELETE FROM poulaillers WHERE poulaillers.trade_id = (SELECT poulaillers.trade_id FROM poulaillers WHERE poulaillers.poule_name = '{poule_name}' LIMIT 1) AND fermier_id = {fermier_id}")
+    con.commit()
+    return res
+
+def gain_money(cur, con, fermier_id, value):
+    res = do_sql(cur, f"UPDATE fermiers SET oeufs = oeufs + {value} WHERE fermier_id = {fermier_id}")
+    return res

@@ -14,6 +14,7 @@ async def poulailler(interaction: discord.Interaction):
     """
     cmd to show your poulailler
     """
+    await interaction.response.defer()
     fermier_id = interaction.user.id
     fermier_exist(cur, con, fermier_id)
 
@@ -34,11 +35,11 @@ async def poulailler(interaction: discord.Interaction):
         )
         embed.set_footer(text=f"{1}/{poulailler_data['amount']} poules      Valeur du poulailler:{poulailler_data['value']}🥚")
 
-        await interaction.response.send_message(file=file, embed=embed, view=Poulailler_Buttons(poulailler, poulailler_data)
+        await interaction.followup.send(file=file, embed=embed, view=Poulailler_Buttons(poulailler, poulailler_data)
         )
     else:
         embed.add_field(name="Tu n'as aucune poule", value="Aucune ")
-        await interaction.response.send_message(embed=embed
+        await interaction.followup.send(embed=embed
         )
 
 
@@ -191,9 +192,7 @@ class Poulailler_Buttons(discord.ui.View):
 
     @discord.ui.button(label="Vendre", style=discord.ButtonStyle.green)
     async def sell(self, interaction: discord.Interaction, buttons:discord.ui.Button):
-        self.poule_place += 1
-        if self.poule_place >= len(self.poulailler):
-            self.poule_place = 0
+                
         poule = self.poulailler[self.poule_place]
         embed = discord.Embed(
             title=f"**{poule['poule_name']}**"
