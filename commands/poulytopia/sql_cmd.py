@@ -121,4 +121,55 @@ def get_last_harvest(cur, fermier_id):
     res = do_sql(cur, f"SELECT last_harvest FROM fermiers WHERE fermier_id = {fermier_id}").fetchone()[0]
     return res
 
-    
+def get_last_market(cur):
+    res = do_sql(cur, f"SELECT last_market FROM market").fetchone()[0]
+    return res
+
+def register_market(cur, con, now):
+    poules = do_sql(cur, f"SELECT * FROM poules ORDER BY RANDOM() LIMIT 5;").fetchall()
+    time = str(now)[0:10]+" 18:00:00.000000"
+    do_sql(cur, "DELETE FROM market")
+    for poule in poules:
+        do_sql(cur, f"INSERT INTO market VALUES ('{poule[0]}','{time}')")
+    con.commit()
+    return
+
+def get_market(cur):
+    res = do_sql(cur, "SELECT * FROM poules WHERE poules.poule_name IN (SELECT poule_name FROM market)").fetchall()
+    market = []
+    for poules in res:
+        market.append({
+            "poule_name": poules[0],
+            "price": poules[1],
+            "production": poules[2],
+            "path": poules[3]
+        })
+    return market
+
+def buy_poule(cur, con, fermier_id, poule):
+    oeufs = get_fermier_oeufs(cur, fermier_id)
+    if oeufs < poule['price']:
+        return "Tu n'as pas assez d'argent bouffon"
+    res = add_poule(cur, con, poule['poule_name'], fermier_id)
+    if type(res) == str:
+        return "Pas place dans poulailler"
+    do_sql(cur, f"UPDATE fermiers SET oeufs = oeufs - {poule['price']} WHERE fermier_id = {fermier_id}")
+    con.commit()
+    return 0
+
+def get_fermier_lvl(cur, fermier_id):
+    res = do_sql(cur, f"SELECT fermiers.level FROM fermiers WHERE fermier_id = {fermier_id}").fetchone()[0]
+    return res
+
+def get_fermier_oeufs(cur, fermier_id):
+    oeufs = do_sql(cur, f"SELECT oeufs FROM fermiers WHERE fermier_id = {fermier_id}").fetchone()[0]
+    return oeufs
+
+def lvl_up_fermier(cur, con, fermier_lvl, fermier_id):
+    oeufs = get_fermier_oeufs(cur, fermier_id)
+    if oeufs < fermier_lvl*100:
+        return "Tu n'as pas assez d'argent bouffon"
+    do_sql(cur, f"UPDATE fermiers SET oeufs = oeufs - {fermier_lvl*100} WHERE fermier_id = {fermier_id}")
+    do_sql(cur, f"UPDATE fermiers SET level = level+1 WHERE fermier_id = {fermier_id}")
+    con.commit()
+    return 0
