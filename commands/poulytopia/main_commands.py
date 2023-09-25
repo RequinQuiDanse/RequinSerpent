@@ -24,7 +24,8 @@ async def poulailler(interaction: discord.Interaction):
     poulailler_data = get_poulailler_data(cur, fermier_id)
     if len(poulailler) != 0:
         poule = poulailler[0]
-        embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[0, poulailler_data['amount']], avatar = interaction.user.avatar, fermier_id=fermier_id)
+        embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[
+                                   0, poulailler_data['amount']], avatar=interaction.user.avatar, fermier_id=fermier_id)
 
         await interaction.followup.send(file=file, embed=embed, view=Poulailler_Buttons(poulailler, poulailler_data, fermier_id, interaction.user.avatar)
                                         )
@@ -102,11 +103,13 @@ async def daily_poule(interaction: discord.Interaction):
     register_tirage(cur, con, fermier_id, now)
     poule = get_random_poule(cur)
 
-    embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, avatar = interaction.user.avatar, fermier_id=fermier_id)
+    embed, file = create_embed(
+        title=f"**{poule['poule_name']}**", poule=poule, avatar=interaction.user.avatar, fermier_id=fermier_id)
 
     await interaction.followup.send(
         file=file, embed=embed, ephemeral=True, view=Daily_Button(poule, fermier_id)
     )
+
 
 @bot.tree.command(
     guild=discord.Object(id=769911179547246592), description="Tirage quotidien de poule"
@@ -122,18 +125,16 @@ async def marketplace(interaction: discord.Interaction):
 
     last_market = get_last_market(cur)
     last_market = datetime.strptime(last_market, "%Y-%m-%d %H:%M:%S.%f")
-    print(last_market)
-    print(now)
     diff = (now - last_market).total_seconds()
-    print(diff)
 
     if diff > 86400:
         register_market(cur, con, now)
 
     market = get_market(cur)
     poule = market[0]
-    embed, file = create_embed(title= f"**{poule['poule_name']}**", poule= poule, poule_place=[0, 5], fermier_id=fermier_id)
-    
+    embed, file = create_embed(
+        title=f"**{poule['poule_name']}**", poule=poule, poule_place=[0, 5], fermier_id=fermier_id)
+
     await interaction.followup.send(
         file=file, embed=embed, ephemeral=True, view=Market_Buttons(market, fermier_id)
     )
@@ -160,7 +161,8 @@ class Poulailler_Buttons(discord.ui.View):
             self.poule_place = len(self.poulailler)-1
         poule = self.poulailler[self.poule_place]
 
-        embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[self.poule_place, self.poulailler_data['amount']], avatar = interaction.user.avatar, fermier_id=self.fermier_id)
+        embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[
+                                   self.poule_place, self.poulailler_data['amount']], avatar=interaction.user.avatar, fermier_id=self.fermier_id)
 
         await interaction.followup.edit_message(
             message_id=interaction.message.id,
@@ -177,7 +179,8 @@ class Poulailler_Buttons(discord.ui.View):
             self.poule_place = 0
         poule = self.poulailler[self.poule_place]
 
-        embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[self.poule_place, self.poulailler_data['amount']], avatar = interaction.user.avatar, fermier_id=self.fermier_id)
+        embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[
+                                   self.poule_place, self.poulailler_data['amount']], avatar=interaction.user.avatar, fermier_id=self.fermier_id)
 
         await interaction.followup.edit_message(
             message_id=interaction.message.id,
@@ -243,9 +246,11 @@ class Poulailler_Buttons(discord.ui.View):
         fermier_lvl = get_fermier_lvl(cur, self.fermier_id)
         embed = discord.Embed(title="Monter de niveau")
         embed.add_field(name="Prix", value=str(fermier_lvl*100)+"🥚")
-        embed.add_field(name="Avantage", value="Augmente de 1 la taille de ton poulailler")
+        embed.add_field(name="Avantage",
+                        value="Augmente de 1 la taille de ton poulailler")
         await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed, view=Lvl_Up_Button(fermier_lvl, self.fermier_id, self.avatar), attachments=[]
                                                 )
+
 
 class Daily_Button(discord.ui.View):
     """
@@ -264,7 +269,8 @@ class Daily_Button(discord.ui.View):
         await interaction.response.defer()
         res = add_poule(cur, con, self.poule["poule_name"], self.fermier_id)
         if type(res) == str:
-            embed, file = create_embed(title=f"Tu n'as plus de place dans le poulailler", poule=self.poule, avatar = interaction.user.avatar, fermier_id=self.fermier_id)
+            embed, file = create_embed(title=f"Tu n'as plus de place dans le poulailler",
+                                       poule=self.poule, avatar=interaction.user.avatar, fermier_id=self.fermier_id)
             return await interaction.followup.edit_message(
                 message_id=interaction.message.id,
                 attachments=[file],
@@ -272,7 +278,8 @@ class Daily_Button(discord.ui.View):
                 view=self,
             )
 
-        embed, file = create_embed(title=f"Tu as gagné la poule {self.poule['poule_name']}:)", poule=self.poule, avatar = interaction.user.avatar, fermier_id=self.fermier_id)
+        embed, file = create_embed(
+            title=f"Tu as gagné la poule {self.poule['poule_name']}:)", poule=self.poule, avatar=interaction.user.avatar, fermier_id=self.fermier_id)
 
         await interaction.followup.edit_message(
             message_id=interaction.message.id,
@@ -280,6 +287,7 @@ class Daily_Button(discord.ui.View):
             embed=embed,
             view=None,
         )
+
 
 class Market_Buttons(discord.ui.View):
     """
@@ -309,7 +317,8 @@ class Market_Buttons(discord.ui.View):
                 content="Tu n'as plus de place dans le poulailler"
             )
 
-        embed, file = create_embed(title=f"Tu as acheté la poule {poule['poule_name']}:)", poule=poule, avatar = interaction.user.avatar, fermier_id=self.fermier_id)
+        embed, file = create_embed(
+            title=f"Tu as acheté la poule {poule['poule_name']}:)", poule=poule, avatar=interaction.user.avatar, fermier_id=self.fermier_id)
 
         await interaction.followup.edit_message(
             message_id=interaction.message.id,
@@ -325,7 +334,8 @@ class Market_Buttons(discord.ui.View):
         if self.poule_place < 0:
             self.poule_place = len(self.market)-1
         poule = self.market[self.poule_place]
-        embed, file = create_embed(title=poule['poule_name'], poule=poule, poule_place=[self.poule_place,5], fermier_id=self.fermier_id)
+        embed, file = create_embed(title=poule['poule_name'], poule=poule, poule_place=[
+                                   self.poule_place, 5], fermier_id=self.fermier_id)
 
         await interaction.followup.edit_message(
             message_id=interaction.message.id,
@@ -341,7 +351,8 @@ class Market_Buttons(discord.ui.View):
         if self.poule_place >= len(self.market):
             self.poule_place = 0
         poule = self.market[self.poule_place]
-        embed, file = create_embed(title=poule['poule_name'], poule=poule, poule_place=[self.poule_place,5], fermier_id=self.fermier_id)
+        embed, file = create_embed(title=poule['poule_name'], poule=poule, poule_place=[
+                                   self.poule_place, 5], fermier_id=self.fermier_id)
 
         await interaction.followup.edit_message(
             message_id=interaction.message.id,
@@ -349,6 +360,7 @@ class Market_Buttons(discord.ui.View):
             embed=embed,
             view=self,
         )
+
 
 def create_embed(title, poule, fermier_id, poule_place=None, avatar=None):
     embed = discord.Embed(
@@ -407,7 +419,7 @@ class Lvl_Up_Button(discord.ui.View):
         embed = discord.Embed(title="GG tu as monté de niveau ton poulailler")
         embed.add_field(name="Niveau actuelle", value=self.fermier_lvl+1)
         embed.add_field(name="Oeufs restant", value=actuel_money)
-        embed.set_thumbnail(url = self.avatar)
+        embed.set_thumbnail(url=self.avatar)
         await interaction.followup.edit_message(
             message_id=interaction.message.id,
             attachments=[],

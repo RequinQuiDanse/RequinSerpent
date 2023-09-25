@@ -25,7 +25,6 @@ def do_sql(cur, sql):
 def fermier_exist(cur, con, fermier_id, now):
     res = do_sql(
         cur, f"SELECT fermier_id FROM fermiers WHERE fermier_id = {fermier_id}").fetchone()
-    print(res)
     if res == None:
         print(f'Création du profil de {fermier_id}')
         cur.execute(f"INSERT INTO fermiers (fermier_id, last_harvest) VALUES ({fermier_id}, '{now}')")
@@ -39,7 +38,6 @@ def get_poulailler(cur, fermier_id):
     res = do_sql(
         cur, f"SELECT poules.poule_name, poules.price, poules.production, poules.path FROM poules JOIN poulaillers ON \
             poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id}").fetchall()
-    print(res)
     poules_dict = []
     for poule in res:
         # Décompacte les valeurs de la sous-liste
