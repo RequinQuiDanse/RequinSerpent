@@ -2,7 +2,7 @@ from bot import bot, discord
 from commands.poulytopia.sql_cmd import *
 import requests
 from datetime import datetime, timedelta
-
+from random import randint
 con = create_connection(path=path)
 cur = con.cursor()
 
@@ -41,14 +41,18 @@ async def poulailler(interaction: discord.Interaction):
 async def create_poulee(
     interaction: discord.Interaction,
     poule_name: str,
-    price: int,
-    production: int,
     picture: discord.Attachment,
+    price: int=None,
+    production: int=None,
 ):
     """
     cmd to add poule to sql
     """
     await interaction.response.defer()
+
+    if price == None:
+        price = round(randint(50, 150), -1)
+        
 
     if interaction.user.id not in [533764434305351690, 379227572682227712]:
         return
