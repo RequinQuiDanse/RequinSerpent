@@ -3,6 +3,7 @@ from commands.poulytopia.sql_cmd import *
 import requests
 from datetime import datetime, timedelta
 from random import randint
+from unidecode import unidecode
 con = create_connection(path=path)
 cur = con.cursor()
 
@@ -51,12 +52,15 @@ async def create_poulee(
     await interaction.response.defer()
 
     if price == None:
-        price = round(randint(50, 150), -1)
-        
+        price = round(randint(50, 250), -1)
+    
+    if production == None:
+        production = randint(1,7)
 
     if interaction.user.id not in [533764434305351690, 379227572682227712]:
         return
-    filename = picture.filename
+    filename = unidecode(poule_name.casefold().replace(" ", "_")+".png")
+    print(filename)
     picture = requests.get(picture).content
     with open(f"commands/poulytopia/pictures/{filename}", "wb") as handler:
         handler.write(picture)
@@ -228,19 +232,11 @@ class Poulailler_Buttons(discord.ui.View):
         await interaction.response.defer()
         now = datetime.now()
 
-        last_harvest = get_last_harvest(cur, self.fermier_id)
-        last_harvest = datetime.strptime(last_harvest, "%Y-%m-%d %H:%M:%S.%f")
-        diff = (now - last_harvest).total_seconds()
-        hours = diff//3600
-        oeufs_produits = 0
-        if hours > 0:
-            poule_prod = self.poulailler_data['production']
-            oeufs_produits += poule_prod * hours
-            now = now - timedelta(seconds=diff % 3600)
-            register_harvest(cur, con, self.fermier_id, now)
+        oeufs_produits = get_last_harvest(cur, con, self.fermier_id, now)
+
         embed = discord.Embed(title=f"Résultat de la récolte d'oeufs")
         embed.add_field(name="Nombre d'oeufs récupérés:",
-                        value=f"**{oeufs_produits}**🥚 produits en {round(hours)} heures et {round(diff%3600/60)}minutes")
+                        value=f"**{oeufs_produits}**🥚 récupérés")
         await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed, view=None, attachments=[]
                                                 )
 

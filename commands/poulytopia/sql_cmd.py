@@ -1,5 +1,6 @@
 import sqlite3
 from sqlite3 import Error
+from datetime import datetime
 path = "commands/poulytopia/poulytopia.db"
 def create_connection(path):
     connection = None
@@ -110,14 +111,18 @@ def get_my_money(cur, fermier_id):
     res = do_sql(cur, f"SELECT fermiers.oeufs FROM fermiers WHERE fermier_id = {fermier_id}").fetchone()[0]
     return res
 
-def register_harvest(cur, con, fermier_id, now):
-    res = do_sql(cur, f"UPDATE fermiers SET last_harvest = '{now}' WHERE fermier_id = {fermier_id}")
-    con.commit()
-    return res
+def get_last_harvest(cur, con, fermier_id, now):
+    res = do_sql(cur, f"SELECT poules.production, last_harvest, poule_name FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id}").fetchall()
+    oeufs_produits = 0
+    for production, last_harvest, poule_name in res:
+        last_harvest = datetime.strptime(last_harvest, "%Y-%m-%d %H:%M:%S.%f")
+        diff = (now - last_harvest).total_seconds()
+        hours = diff//3600
+        oeufs_produits += int(production * hours)
+        do_sql(cur, f"UPDATE poulaillers SET last_harvest = '{now}' WHERE fermier_id = {fermier_id} AND poule_name={poule_name}")
 
-def get_last_harvest(cur, fermier_id):
-    res = do_sql(cur, f"SELECT last_harvest FROM fermiers WHERE fermier_id = {fermier_id}").fetchone()[0]
-    return res
+    gain_money(cur, con, fermier_id, oeufs_produits)
+    return oeufs_produits
 
 def get_last_market(cur):
     res = do_sql(cur, f"SELECT last_market FROM market").fetchone()[0]
