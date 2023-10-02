@@ -1,5 +1,6 @@
 from bot import bot, discord
 from commands.poulytopia.sql_cmd import *
+from commands.poulytopia.poule_prime import photoButton
 import requests
 from datetime import datetime, timedelta
 from random import randint
@@ -27,7 +28,6 @@ async def poulailler(interaction: discord.Interaction):
         poule = poulailler[0]
         embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[
                                    0, poulailler_data['amount']], avatar=interaction.user.avatar, fermier_id=fermier_id)
-
         await interaction.followup.send(file=file, embed=embed, view=Poulailler_Buttons(poulailler, poulailler_data, fermier_id, interaction.user.avatar)
                                         )
     else:
@@ -60,7 +60,7 @@ async def create_poulee(
     if interaction.user.id not in [533764434305351690, 379227572682227712]:
         return
     filename = unidecode(poule_name.casefold().replace(" ", "_")+".png")
-    print(filename)
+
     picture = requests.get(picture).content
     with open(f"commands/poulytopia/pictures/{filename}", "wb") as handler:
         handler.write(picture)
@@ -197,6 +197,17 @@ class Poulailler_Buttons(discord.ui.View):
             view=self,
         )
 
+    @discord.ui.button(label="Edit", style=discord.ButtonStyle.blurple)
+    async def edit(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        await interaction.response.defer()
+
+        poule = self.poulailler[self.poule_place]
+
+        await interaction.followup.edit_message(
+            message_id=interaction.message.id,
+            view=photoButton(path=poule["path"], poule=poule, fermier_id = self.fermier_id),
+        )
+
     @discord.ui.button(label="Vendre", style=discord.ButtonStyle.danger)
     async def sell(self, interaction: discord.Interaction, buttons: discord.ui.Button):
         await interaction.response.defer()
@@ -268,7 +279,7 @@ class Daily_Button(discord.ui.View):
     ):
         await interaction.response.defer()
         now = datetime.now()
-        res = add_poule(cur, con, self.poule["poule_name"], self.fermier_id, now)
+        res = add_poule(cur, con, self.poule["poule_name"], self.fermier_id, now, self.poule["path"])
         if type(res) == str:
             embed, file = create_embed(title=f"Tu n'as plus de place dans le poulailler",
                                        poule=self.poule, avatar=interaction.user.avatar, fermier_id=self.fermier_id)
@@ -363,7 +374,9 @@ class Market_Buttons(discord.ui.View):
         )
 
 
-def create_embed(title, poule, fermier_id, poule_place=None, avatar=None):
+def create_embed(title, poule, fermier_id, poule_place=None, avatar=None, path=None):
+    if path==None:
+        path=poule["path"]
     embed = discord.Embed(
         title=title
     )
@@ -376,11 +389,11 @@ def create_embed(title, poule, fermier_id, poule_place=None, avatar=None):
     actuel_money = get_my_money(cur, fermier_id)
 
     poulailler_lvl = get_fermier_lvl(cur, fermier_id)
-
-    embed.set_image(url=f"attachment://{poule['path']}")
+    
+    embed.set_image(url=f"attachment://{path}")
     file = discord.File(
-        f"commands/poulytopia/pictures/{poule['path']}",
-        filename=poule["path"],
+        f"commands/poulytopia/pictures/{path}",
+        filename=path,
     )
     if avatar is not None:
         embed.set_thumbnail(url=avatar)

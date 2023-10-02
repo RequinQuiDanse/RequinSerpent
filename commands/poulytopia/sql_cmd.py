@@ -15,6 +15,7 @@ def create_connection(path):
 
 def do_sql(cur, sql):
     res = None
+    print(sql)
     try:
         res = cur.execute(sql)
     except Error as e:
@@ -52,12 +53,12 @@ def get_poulailler(cur, fermier_id):
     return poules_dict
 
 
-def add_poule(cur, con, poule_name, fermier_id, now):
+def add_poule(cur, con, poule_name, fermier_id, now, path):
     user_lvl = do_sql(cur, f"SELECT fermiers.level FROM fermiers WHERE fermier_id = {fermier_id}").fetchone()[0]
     poulailler_size = do_sql(cur, f"SELECT COUNT(*) FROM poulaillers WHERE fermier_id = {fermier_id}").fetchone()[0]
     if user_lvl > poulailler_size:
         res = do_sql(
-            cur, f"INSERT INTO poulaillers (poule_name, fermier_id, last_harvest) VALUES (\"{poule_name}\", {fermier_id}, \"{now}\")")
+            cur, f"INSERT INTO poulaillers (poule_name, fermier_id, last_harvest, path) VALUES (\"{poule_name}\", {fermier_id}, \"{now}\", \"{path}\")")
         con.commit()
     else:
         res = "Plus de taille dans le poulailler"
@@ -176,3 +177,11 @@ def lvl_up_fermier(cur, con, fermier_lvl, fermier_id):
     do_sql(cur, f"UPDATE fermiers SET level = level+1 WHERE fermier_id = {fermier_id}")
     con.commit()
     return 0
+
+def insert_poule_prime(cur, con, fermier_id, poule_name, path):
+    res = do_sql(cur, f"UPDATE poulaillers SET path ={path} WHERE fermier_id = {fermier_id} AND poule_name = '{poule_name}'").fetchone()
+    return None
+
+# def check_if_poule_prime(cur, fermier_id, poule_name):
+#     res = do_sql(cur, f"SELECT path FROM poule_prime WHERE fermier_id={fermier_id} AND poule_name={poule_name}").fetchone()
+#     return res
