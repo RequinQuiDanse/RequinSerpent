@@ -120,7 +120,7 @@ async def daily_poule(interaction: discord.Interaction):
 
 
 @bot.tree.command(
-    guild=discord.Object(id=769911179547246592), description="Tirage quotidien de poule"
+    guild=discord.Object(id=769911179547246592), description="Marché quotidien de poule"
 )
 async def marketplace(interaction: discord.Interaction):
     """
@@ -267,7 +267,8 @@ class Daily_Button(discord.ui.View):
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
         await interaction.response.defer()
-        res = add_poule(cur, con, self.poule["poule_name"], self.fermier_id)
+        now = datetime.now()
+        res = add_poule(cur, con, self.poule["poule_name"], self.fermier_id, now)
         if type(res) == str:
             embed, file = create_embed(title=f"Tu n'as plus de place dans le poulailler",
                                        poule=self.poule, avatar=interaction.user.avatar, fermier_id=self.fermier_id)
@@ -306,8 +307,8 @@ class Market_Buttons(discord.ui.View):
     ):
         await interaction.response.defer()
         poule = self.market[self.poule_place]
-
-        res = buy_poule(cur, con, self.fermier_id, poule)
+        now = datetime.now()
+        res = buy_poule(cur, con, self.fermier_id, poule, now)
         if type(res) == str:
             return await interaction.followup.edit_message(
                 message_id=interaction.message.id,

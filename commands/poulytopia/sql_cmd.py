@@ -28,7 +28,7 @@ def fermier_exist(cur, con, fermier_id, now):
         cur, f"SELECT fermier_id FROM fermiers WHERE fermier_id = {fermier_id}").fetchone()
     if res == None:
         print(f'Création du profil de {fermier_id}')
-        cur.execute(f"INSERT INTO fermiers (fermier_id, last_harvest) VALUES ({fermier_id}, '{now}')")
+        cur.execute(f"INSERT INTO fermiers (fermier_id) VALUES ({fermier_id})")
         con.commit()
     return res
 
@@ -52,12 +52,12 @@ def get_poulailler(cur, fermier_id):
     return poules_dict
 
 
-def add_poule(cur, con, poule_name, fermier_id):
+def add_poule(cur, con, poule_name, fermier_id, now):
     user_lvl = do_sql(cur, f"SELECT fermiers.level FROM fermiers WHERE fermier_id = {fermier_id}").fetchone()[0]
     poulailler_size = do_sql(cur, f"SELECT COUNT(*) FROM poulaillers WHERE fermier_id = {fermier_id}").fetchone()[0]
     if user_lvl > poulailler_size:
         res = do_sql(
-            cur, f"INSERT INTO poulaillers (poule_name, fermier_id) VALUES (\"{poule_name}\", {fermier_id})")
+            cur, f"INSERT INTO poulaillers (poule_name, fermier_id, last_harvest) VALUES (\"{poule_name}\", {fermier_id}, \"{now}\")")
         con.commit()
     else:
         res = "Plus de taille dans le poulailler"
@@ -112,7 +112,7 @@ def get_my_money(cur, fermier_id):
     return res
 
 def get_last_harvest(cur, con, fermier_id, now):
-    res = do_sql(cur, f"SELECT poules.production, last_harvest, poule_name FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id}").fetchall()
+    res = do_sql(cur, f"SELECT poules.production, poulaillers.last_harvest, poulaillers.poule_name FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id}").fetchall()
     oeufs_produits = 0
     for production, last_harvest, poule_name in res:
         last_harvest = datetime.strptime(last_harvest, "%Y-%m-%d %H:%M:%S.%f")
@@ -149,11 +149,11 @@ def get_market(cur):
         })
     return market
 
-def buy_poule(cur, con, fermier_id, poule):
+def buy_poule(cur, con, fermier_id, poule, now):
     oeufs = get_fermier_oeufs(cur, fermier_id)
     if oeufs < poule['price']:
         return "Tu n'as pas assez d'argent bouffon"
-    res = add_poule(cur, con, poule['poule_name'], fermier_id)
+    res = add_poule(cur, con, poule['poule_name'], fermier_id, now)
     if type(res) == str:
         return "Pas place dans poulailler"
     do_sql(cur, f"UPDATE fermiers SET oeufs = oeufs - {poule['price']} WHERE fermier_id = {fermier_id}")
