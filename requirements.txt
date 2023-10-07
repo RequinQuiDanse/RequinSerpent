@@ -10,3 +10,4 @@ pytesseract
 requests
 discord.py[voice]
 yt_dlp
+Unidecode
