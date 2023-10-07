@@ -6,7 +6,7 @@ headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; x64)\ AppleWebKit/537.36 (KHMTL, like GECKO) \ Chrome/58.0.3029.110 Safari/534.3"}
 
 
-@bot.tree.command(description="Donne la méteo sur 1 semaine")
+@bot.tree.command(guild=discord.Object(id=769911179547246592), description="Donne la méteo sur 1 semaine")
 async def meteo(interaction: discord.Interaction, city: str = "Betz"):
     """
     simple cmd that was long to do that fetch weather and send it in a week

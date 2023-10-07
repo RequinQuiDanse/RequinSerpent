@@ -9,7 +9,7 @@ YELLOW_MARK = "🟡 "
 GREEN_MARK = "✅ "
 
 
-@bot.tree.command(guild=discord.Object(id=769911179547246592), description="Puissance 4")
+@bot.tree.command(description="Puissance 4")
 async def puissance_4(interaction: discord.Interaction, adversaire: str):
     plateau = f"{LETTERS}\n{BLACK_CASE*7}\n{BLACK_CASE*7}\n{BLACK_CASE*7}\n{BLACK_CASE*7}\n{BLACK_CASE*7}\n{BLACK_CASE*7}"
     ctx = await commands.Context.from_interaction(interaction)

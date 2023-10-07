@@ -32,7 +32,6 @@ def chercher_info_csv(nom_fichier, blaze):
         lecteur_csv = csv.DictReader(fichier)
         donnees = list(lecteur_csv)
 
-    print(blaze)
     # Trouver la ligne avec le blaze spécifié
     for ligne in donnees:
         if ligne['blaze'] == blaze:
@@ -46,7 +45,7 @@ CLUB = r"csv_files/club_team.csv"
 JOUEURS_COMMENTAIRE_CSV = r"csv_files/joueurs_commentaires.csv"
 
 
-@bot.tree.command(description="Ultimate player infos")
+@bot.tree.command(guild=discord.Object(id=769911179547246592), description="Ultimate player infos")
 async def player_data(interaction: discord.Interaction):
     """
     cmd to randomly make teams, depends on how much the user wants teams

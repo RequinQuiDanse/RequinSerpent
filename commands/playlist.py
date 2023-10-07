@@ -74,7 +74,6 @@ class Musique:
             .replace(",", "")
         )
         self.asked_playlist = self.choix_musique
-        print(self.choix_musique)
         self.replay = False
         self.random = False
 
@@ -123,7 +122,6 @@ class Musique:
         """
         return a random music name extracted from csv files
         """
-        print(self.asked_playlist, "self.asked_playlist")
         file = f"playlist/{self.asked_playlist}.csv"
         with open(file=file, encoding="utf-8") as f:
             musiqueId = None

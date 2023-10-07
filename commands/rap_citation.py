@@ -17,7 +17,7 @@ def make_request(artist):
             0].getText().strip()
     except:
         return 0
-    print(text)
+
     if "Les meilleures phrases de" not in text:
         return 0
     artist = artist.replace("les-meilleures-phrases-de-","")
@@ -96,7 +96,6 @@ def get_citation(artist):
     while citations_list[random_faux_3][1] == citations_list[random_number][1] or citations_list[random_faux_3][1] == citations_list[random_faux_1][1] or citations_list[random_faux_3][1] == citations_list[random_faux_2][1]:
         random_faux_3 = randint(1, len(citations_list)-1)
 
-    print([citations_list[random_faux_1][1],citations_list[random_faux_2][1],citations_list[random_faux_3][1]])
    # juste un titre
     false_song_1 = citations_list[random_faux_1][1] if len(citations_list[random_faux_1][1]) < 80 and "Source" not in citations_list[random_faux_1][1] else "."
     false_song_2 = citations_list[random_faux_2][1] if len(citations_list[random_faux_2][1]) < 80 and "Source" not in citations_list[random_faux_2][1] else ". "
@@ -108,7 +107,7 @@ class Quizz_View(discord.ui.View):
     """
     A View that can handle a quizz with 4 buttons and 1 good answer
     """
-    def __init__(self, answers, artist):
+    def __init__(self, answers, artist, error_counter=0, tour_counter=0):
         """
         Here you save every infos you need (good and bad answers)
         """
@@ -116,6 +115,9 @@ class Quizz_View(discord.ui.View):
         self.answers = answers
         self.artist = artist
         self.good_answer = ""
+        self.errorCounter = error_counter
+        self.tourCounter = tour_counter
+        self.bon = True
         self.buttons()
 
     def buttons(self):
@@ -142,9 +144,12 @@ class Quizz_View(discord.ui.View):
         count = 0
         response = interaction.data.get('custom_id')
         if response == 'next':
+            self.tourCounter += 1
             answers = get_citation(self.artist)
             citation = answers.pop(0)
-            await interaction.response.edit_message(content = citation, view=Quizz_View(answers, self.artist))
+            embed = discord.Embed(
+                title=self.artist + f"\t{self.tourCounter - self.errorCounter}/{self.tourCounter} ✅", description=citation[0:4090])
+            await interaction.response.edit_message(embed = embed, view=Quizz_View(answers, self.artist, self.errorCounter, self.tourCounter))
         elif response == self.good_answer:
             for i in self.random_song_order:
                 if str(response) == str(i):
@@ -158,6 +163,9 @@ class Quizz_View(discord.ui.View):
                             style=discord.ButtonStyle.blurple, label=self.random_song_order[count], custom_id=self.random_song_order[count], disabled=True))
                 count += 1
         else:
+            if self.bon is True:
+                self.errorCounter += 1
+                self.bon = False
             for x in self.random_song_order:
                 if str(response) == str(x):
                     self.add_item(discord.ui.Button(
@@ -171,7 +179,7 @@ class Quizz_View(discord.ui.View):
             await interaction.response.edit_message(view=self)
         except:
             pass
-@bot.tree.command(description="Testes tes connaissances en rap fr", guild = discord.Object(id=769911179547246592))
+@bot.tree.command(description="Testes tes connaissances en rap fr")
 async def citations(interaction: discord.Interaction, artist: str = "artist"):
     artist = artist.lower()
     ARTISTS = "Alpha Wann, Ash Kidd, Booba, Chilla, Damso, Dinos, Django, Dosseh, Doums, Doxx, Georgio, Hamza, Jazzy Bazz, Josman, Laylow, Lomepal, Lord Esperanza, Lonepsi, Nekfeu, Népal, Ninho, Orelsan, PLK, PNL, Prime, SCH, Sofiane, Vald, Zia"
@@ -186,4 +194,6 @@ async def citations(interaction: discord.Interaction, artist: str = "artist"):
         return await interaction.followup.send(content= "Erreur pdnt le scraping tu site dsl", ephemeral=True)
 
     citation = answers.pop(0)
-    await interaction.followup.send(content = citation, view=Quizz_View(answers, artist))
+    embed = discord.Embed(
+                    title=artist, description=citation[0:4090])
+    await interaction.followup.send(embed = embed, view=Quizz_View(answers, artist))

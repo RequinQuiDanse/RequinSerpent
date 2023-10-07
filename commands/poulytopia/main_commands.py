@@ -9,8 +9,7 @@ con = create_connection(path=path)
 cur = con.cursor()
 
 
-@bot.tree.command(
-    guild=discord.Object(id=769911179547246592), description="Montre ton poulailler"
+@bot.tree.command(description="Montre ton poulailler"
 )
 async def poulailler(interaction: discord.Interaction):
     """
@@ -87,9 +86,9 @@ async def create_poulee(
 
 
 @bot.tree.command(
-    guild=discord.Object(id=769911179547246592), description="Tirage quotidien de poule"
+    description="Tirage quotidien de poule"
 )
-async def daily_poule(interaction: discord.Interaction):
+async def tirage(interaction: discord.Interaction):
     """
     cmd to daily chance to get a poule
     """
@@ -104,7 +103,7 @@ async def daily_poule(interaction: discord.Interaction):
         diff = (now - last_tirage).total_seconds()
         if diff < 3600:
             return await interaction.followup.send(
-                content=f"Le dernier tirage de date que de {round(diff/60)} minutes, attends encore :)",
+                content=f"Prochain tirage à 18h, attends encore :)",
                 ephemeral=True,
             )
 
@@ -120,9 +119,9 @@ async def daily_poule(interaction: discord.Interaction):
 
 
 @bot.tree.command(
-    guild=discord.Object(id=769911179547246592), description="Marché quotidien de poule"
+    description="Marché quotidien de poule"
 )
-async def marketplace(interaction: discord.Interaction):
+async def magazin(interaction: discord.Interaction):
     """
     cmd to daily market
     """
@@ -163,6 +162,8 @@ class Poulailler_Buttons(discord.ui.View):
 
     @discord.ui.button(label="⬅", style=discord.ButtonStyle.blurple)
     async def back(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        if self.fermier_id != interaction.user.id:
+            return
         await interaction.response.defer()
         self.poule_place -= 1
         if self.poule_place < 0:
@@ -181,6 +182,8 @@ class Poulailler_Buttons(discord.ui.View):
 
     @discord.ui.button(label="➡", style=discord.ButtonStyle.blurple)
     async def next(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        if self.fermier_id != interaction.user.id:
+            return
         await interaction.response.defer()
         self.poule_place += 1
         if self.poule_place >= len(self.poulailler):
@@ -199,21 +202,26 @@ class Poulailler_Buttons(discord.ui.View):
 
     @discord.ui.button(label="Edit", style=discord.ButtonStyle.blurple)
     async def edit(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        if self.fermier_id != interaction.user.id:
+            return
         await interaction.response.defer()
 
         poule = self.poulailler[self.poule_place]
 
         await interaction.followup.edit_message(
             message_id=interaction.message.id,
-            view=photoButton(path=poule["path"], poule=poule, fermier_id = self.fermier_id),
+            view=photoButton(path=poule["path"], poule=poule, fermier_id = self.fermier_id, cur=cur, con=con),
         )
 
     @discord.ui.button(label="Vendre", style=discord.ButtonStyle.danger)
     async def sell(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        if self.fermier_id != interaction.user.id:
+            return
         await interaction.response.defer()
         poule = self.poulailler[self.poule_place]
         sell_poule(cur, con, self.fermier_id, poule['poule_name'])
-        gain_money(cur, con, self.fermier_id, poule['price'])
+        price = randint(round(poule['price']*0.75), round(poule['price']*1.25))
+        gain_money(cur, con, self.fermier_id, price)
         actuel_money = get_my_money(cur, self.fermier_id)
 
         embed = discord.Embed(
@@ -225,7 +233,7 @@ class Poulailler_Buttons(discord.ui.View):
         )
         embed.add_field(
             name="Oeufs gagné:",
-            value=f"**{poule['price']}**🥚"
+            value=f"**{price}**🥚"
         )
         embed.add_field(
             name="Oeufs total:",
@@ -235,11 +243,13 @@ class Poulailler_Buttons(discord.ui.View):
             message_id=interaction.message.id,
             embed=embed,
             attachments=[],
-            view=None
+            view=BackToPoulailler(self.poulailler, self.poulailler_data, self.fermier_id, self.avatar),
         )
 
     @discord.ui.button(label="Récolte d'🥚", style=discord.ButtonStyle.green)
     async def take_oeufs(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        if self.fermier_id != interaction.user.id:
+            return
         await interaction.response.defer()
         now = datetime.now()
 
@@ -248,11 +258,14 @@ class Poulailler_Buttons(discord.ui.View):
         embed = discord.Embed(title=f"Résultat de la récolte d'oeufs")
         embed.add_field(name="Nombre d'oeufs récupérés:",
                         value=f"**{oeufs_produits}**🥚 récupérés")
-        await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed, view=None, attachments=[]
+        await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed,
+                                                 view=BackToPoulailler(self.poulailler, self.poulailler_data, self.fermier_id, self.avatar), attachments=[]
                                                 )
 
     @discord.ui.button(label=f"Monter de niveau", style=discord.ButtonStyle.green)
     async def lvl_upp(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        if self.fermier_id != interaction.user.id:
+            return
         await interaction.response.defer()
         fermier_lvl = get_fermier_lvl(cur, self.fermier_id)
         embed = discord.Embed(title="Monter de niveau")
@@ -277,6 +290,8 @@ class Daily_Button(discord.ui.View):
     async def prendre_poule(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
+        if self.fermier_id != interaction.user.id:
+            return
         await interaction.response.defer()
         now = datetime.now()
         res = add_poule(cur, con, self.poule["poule_name"], self.fermier_id, now, self.poule["path"])
@@ -291,7 +306,7 @@ class Daily_Button(discord.ui.View):
             )
 
         embed, file = create_embed(
-            title=f"Tu as gagné la poule {self.poule['poule_name']}:)", poule=self.poule, avatar=interaction.user.avatar, fermier_id=self.fermier_id)
+            title=f"Tu as gagné {self.poule['poule_name']} :)", poule=self.poule, avatar=interaction.user.avatar, fermier_id=self.fermier_id)
 
         await interaction.followup.edit_message(
             message_id=interaction.message.id,
@@ -316,10 +331,12 @@ class Market_Buttons(discord.ui.View):
     async def buy_poulee(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
+        if self.fermier_id != interaction.user.id:
+            return
         await interaction.response.defer()
         poule = self.market[self.poule_place]
         now = datetime.now()
-        res = buy_poule(cur, con, self.fermier_id, poule, now)
+        res = buy_poule(cur, con, self.fermier_id, poule, now, poule['path'])
         if type(res) == str:
             return await interaction.followup.edit_message(
                 message_id=interaction.message.id,
@@ -330,7 +347,7 @@ class Market_Buttons(discord.ui.View):
             )
 
         embed, file = create_embed(
-            title=f"Tu as acheté la poule {poule['poule_name']}:)", poule=poule, avatar=interaction.user.avatar, fermier_id=self.fermier_id)
+            title=f"Tu as acheté la poule {poule['poule_name']} :)", poule=poule, avatar=interaction.user.avatar, fermier_id=self.fermier_id)
 
         await interaction.followup.edit_message(
             message_id=interaction.message.id,
@@ -341,6 +358,8 @@ class Market_Buttons(discord.ui.View):
 
     @discord.ui.button(label="⬅", style=discord.ButtonStyle.blurple)
     async def back(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        if self.fermier_id != interaction.user.id:
+            return
         await interaction.response.defer()
         self.poule_place -= 1
         if self.poule_place < 0:
@@ -358,6 +377,8 @@ class Market_Buttons(discord.ui.View):
 
     @discord.ui.button(label="➡", style=discord.ButtonStyle.blurple)
     async def next(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        if self.fermier_id != interaction.user.id:
+            return
         await interaction.response.defer()
         self.poule_place += 1
         if self.poule_place >= len(self.market):
@@ -418,6 +439,8 @@ class Lvl_Up_Button(discord.ui.View):
     async def lvl_up(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
+        if self.fermier_id != interaction.user.id:
+            return
         await interaction.response.defer()
         res = lvl_up_fermier(cur, con, self.fermier_lvl, self.fermier_id)
         if type(res) == str:
@@ -440,3 +463,29 @@ class Lvl_Up_Button(discord.ui.View):
             embed=embed,
             view=None,
         )
+
+
+class BackToPoulailler(discord.ui.View):
+    """
+    """
+    def __init__(self, poulailler, poulailler_data, fermier_id, avatar):
+        super().__init__()
+        self.poulailler = poulailler
+        self.poulailler_data = poulailler_data
+        self.fermier_id = fermier_id
+        self.avatar = avatar
+
+    @discord.ui.button(label="Poulailler", style=discord.ButtonStyle.green)
+    async def back_to_poulailler(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        await interaction.response.defer()
+        if self.fermier_id != interaction.user.id:
+            return
+        poulailler = get_poulailler(cur, self.fermier_id)
+        poulailler_data = get_poulailler_data(cur, self.fermier_id)
+        poule = poulailler[0]
+        embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[
+                                    0, poulailler_data['amount']], avatar=interaction.user.avatar, fermier_id=self.fermier_id)
+        await interaction.followup.edit_message(message_id=interaction.message.id, attachments=[file], embed=embed, view=Poulailler_Buttons(poulailler, poulailler_data, self.fermier_id, self.avatar)
+                                        )
