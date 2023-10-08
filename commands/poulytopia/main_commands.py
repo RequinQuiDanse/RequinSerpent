@@ -11,28 +11,49 @@ cur = con.cursor()
 
 @bot.tree.command(description="Montre ton poulailler"
 )
-async def poulailler(interaction: discord.Interaction):
+async def poulailler(interaction: discord.Interaction, fermier_id:str = None):
     """
     cmd to show your poulailler
     """
     now = datetime.now()
     await interaction.response.defer()
-    fermier_id = interaction.user.id
-    fermier_exist(cur, con, fermier_id, now)
-
-    embed = discord.Embed(title="Ton poulailler")
-    poulailler = get_poulailler(cur, fermier_id)
-    poulailler_data = get_poulailler_data(cur, fermier_id)
-    if len(poulailler) != 0:
-        poule = poulailler[0]
-        embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[
-                                   0, poulailler_data['amount']], avatar=interaction.user.avatar, fermier_id=fermier_id)
-        await interaction.followup.send(file=file, embed=embed, view=Poulailler_Buttons(poulailler, poulailler_data, fermier_id, interaction.user.avatar)
-                                        )
+    if fermier_id != None:
+        # fermier_id = int(fermier_id.replace("<@", "").replace(">", ""))
+        # fermier_exist(cur, con, fermier_id, now)
+        guild = bot.get_guild(769911179547246592)
+        user = guild.get_member_named(fermier_id)
+        avatar = user.avatar
+        fermier_id = user.id
+        embed = discord.Embed(title="Son poulailler")
+        poulailler = get_poulailler(cur, fermier_id)
+        poulailler_data = get_poulailler_data(cur, fermier_id)
+        if len(poulailler) != 0:
+            poule = poulailler[0]
+            embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[
+                                    0, poulailler_data['amount']], avatar=avatar, fermier_id=fermier_id)
+            await interaction.followup.send(file=file, embed=embed, view=Poulailler_Visite(poulailler, poulailler_data, fermier_id, avatar)
+                                            )
+        else:
+            embed.add_field(name="Il ou elle n'a aucune poule", value="Aucune")
+            await interaction.followup.send(embed=embed
+                                            )
     else:
-        embed.add_field(name="Tu n'as aucune poule", value="Aucune ")
-        await interaction.followup.send(embed=embed
-                                        )
+        fermier_id = interaction.user.id
+        fermier_exist(cur, con, fermier_id, now)
+
+        embed = discord.Embed(title="Ton poulailler")
+        poulailler = get_poulailler(cur, fermier_id)
+        poulailler_data = get_poulailler_data(cur, fermier_id)
+        if len(poulailler) != 0:
+            poule = poulailler[0]
+            embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[
+                                    0, poulailler_data['amount']], avatar=interaction.user.avatar, fermier_id=fermier_id)
+            await interaction.followup.send(file=file, embed=embed, view=Poulailler_Buttons(poulailler, poulailler_data, fermier_id, interaction.user.avatar)
+                                            )
+        else:
+            embed.add_field(name="Tu n'as aucune poule", value="Aucune ")
+            await interaction.followup.send(embed=embed
+                                            )
 
 
 @bot.tree.command(
@@ -101,7 +122,7 @@ async def tirage(interaction: discord.Interaction):
     if last_tirage != "0":
         last_tirage = datetime.strptime(last_tirage, "%Y-%m-%d %H:%M:%S.%f")
         diff = (now - last_tirage).total_seconds()
-        if diff < 3600:
+        if diff < 86400:
             return await interaction.followup.send(
                 content=f"Prochain tirage à 18h, attends encore :)",
                 ephemeral=True,
@@ -243,7 +264,7 @@ class Poulailler_Buttons(discord.ui.View):
             message_id=interaction.message.id,
             embed=embed,
             attachments=[],
-            view=BackToPoulailler(self.poulailler, self.poulailler_data, self.fermier_id, self.avatar),
+            view=BackToPoulailler(self.fermier_id),
         )
 
     @discord.ui.button(label="Récolte d'🥚", style=discord.ButtonStyle.green)
@@ -259,7 +280,7 @@ class Poulailler_Buttons(discord.ui.View):
         embed.add_field(name="Nombre d'oeufs récupérés:",
                         value=f"**{oeufs_produits}**🥚 récupérés")
         await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed,
-                                                 view=BackToPoulailler(self.poulailler, self.poulailler_data, self.fermier_id, self.avatar), attachments=[]
+                                                 view=BackToPoulailler(self.fermier_id), attachments=[]
                                                 )
 
     @discord.ui.button(label=f"Monter de niveau", style=discord.ButtonStyle.green)
@@ -468,12 +489,11 @@ class Lvl_Up_Button(discord.ui.View):
 class BackToPoulailler(discord.ui.View):
     """
     """
-    def __init__(self, poulailler, poulailler_data, fermier_id, avatar):
+    def __init__(self, fermier_id):
         super().__init__()
-        self.poulailler = poulailler
-        self.poulailler_data = poulailler_data
+        self.poulailler = get_poulailler(cur, fermier_id)
+        self.poulailler_data = get_poulailler_data(cur, fermier_id)
         self.fermier_id = fermier_id
-        self.avatar = avatar
 
     @discord.ui.button(label="Poulailler", style=discord.ButtonStyle.green)
     async def back_to_poulailler(
@@ -485,7 +505,58 @@ class BackToPoulailler(discord.ui.View):
         poulailler = get_poulailler(cur, self.fermier_id)
         poulailler_data = get_poulailler_data(cur, self.fermier_id)
         poule = poulailler[0]
+        avatar = interaction.user.avatar
         embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[
-                                    0, poulailler_data['amount']], avatar=interaction.user.avatar, fermier_id=self.fermier_id)
-        await interaction.followup.edit_message(message_id=interaction.message.id, attachments=[file], embed=embed, view=Poulailler_Buttons(poulailler, poulailler_data, self.fermier_id, self.avatar)
+                                    0, poulailler_data['amount']], avatar=avatar, fermier_id=self.fermier_id)
+        await interaction.followup.edit_message(message_id=interaction.message.id, attachments=[file], embed=embed, view=Poulailler_Buttons(poulailler, poulailler_data, self.fermier_id, avatar)
                                         )
+        
+
+class Poulailler_Visite(discord.ui.View):
+    """
+    create all the buttons
+    """
+
+    def __init__(self, poulailler, poulailler_data, fermier_id, avatar):
+        super().__init__()
+        self.poulailler = poulailler
+        self.poule_place = 0
+        self.poulailler_data = poulailler_data
+        self.fermier_id = fermier_id
+        self.avatar = avatar
+
+    @discord.ui.button(label="⬅", style=discord.ButtonStyle.blurple)
+    async def back(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        await interaction.response.defer()
+        self.poule_place -= 1
+        if self.poule_place < 0:
+            self.poule_place = len(self.poulailler)-1
+        poule = self.poulailler[self.poule_place]
+
+        embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[
+                                   self.poule_place, self.poulailler_data['amount']], avatar=self.avatar, fermier_id=self.fermier_id)
+
+        await interaction.followup.edit_message(
+            message_id=interaction.message.id,
+            attachments=[file],
+            embed=embed,
+            view=self,
+        )
+
+    @discord.ui.button(label="➡", style=discord.ButtonStyle.blurple)
+    async def next(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        await interaction.response.defer()
+        self.poule_place += 1
+        if self.poule_place >= len(self.poulailler):
+            self.poule_place = 0
+        poule = self.poulailler[self.poule_place]
+
+        embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[
+                                   self.poule_place, self.poulailler_data['amount']], avatar=self.avatar, fermier_id=self.fermier_id)
+
+        await interaction.followup.edit_message(
+            message_id=interaction.message.id,
+            attachments=[file],
+            embed=embed,
+            view=self,
+        )

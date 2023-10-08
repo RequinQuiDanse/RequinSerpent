@@ -101,7 +101,7 @@ def get_poulailler_data(cur, fermier_id):
     return res
 
 def sell_poule(cur, con, fermier_id, poule_name):
-    res = do_sql(cur, f"DELETE FROM poulaillers WHERE poulaillers.trade_id = (SELECT poulaillers.trade_id FROM poulaillers WHERE poulaillers.poule_name = '{poule_name}' LIMIT 1) AND fermier_id = {fermier_id}")
+    res = do_sql(cur, f"DELETE FROM poulaillers WHERE poulaillers.trade_id = (SELECT poulaillers.trade_id FROM poulaillers WHERE poulaillers.poule_name = '{poule_name}' AND fermier_id = {fermier_id} LIMIT 1)")
     con.commit()
     return res
 

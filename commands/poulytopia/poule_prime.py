@@ -193,6 +193,6 @@ class photoButton(discord.ui.View):
         img.save(filename=self.new_path)
         embed, file = main_commands.create_embed(title=self.poule['poule_name'], poule=self.poule, fermier_id=self.fermier_id, path=self.new_path.replace("commands/poulytopia/pictures/",""))
         main_commands.insert_poule_prime(self.cur, self.con, self.fermier_id, self.poule["poule_name"], self.new_path.replace("commands/poulytopia/pictures/",""))
-        await interaction.response.edit_message(attachments=[discord.File(self.new_path)], embed=embed, view=None)
+        await interaction.response.edit_message(attachments=[discord.File(self.new_path)], embed=embed, view=main_commands.BackToPoulailler(self.fermier_id))
         #os.remove(f"photo-{self.idImage}.jpg")
         img.close()
