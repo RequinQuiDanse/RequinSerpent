@@ -1,5 +1,5 @@
 from bot import bot, discord, commands
-
+from commands.poulytopia import main_commands
 LETTERS = "1️⃣ 2️⃣ 3️⃣ 4️⃣ 5️⃣ 6️⃣ 7️⃣"
 # LETTERS_LIST = ["🇦", "🇧", "🇨", "🇩", "🇪", "🇫", "🇬"]
 LETTERS_LIST = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣"]
@@ -8,21 +8,34 @@ RED_MARK = "🔴 "
 YELLOW_MARK = "🟡 "
 GREEN_MARK = "✅ "
 
-
 @bot.tree.command(description="Puissance 4")
-async def puissance_4(interaction: discord.Interaction, adversaire: str):
-    plateau = f"{LETTERS}\n{BLACK_CASE*7}\n{BLACK_CASE*7}\n{BLACK_CASE*7}\n{BLACK_CASE*7}\n{BLACK_CASE*7}\n{BLACK_CASE*7}"
+async def puissance_4(interaction: discord.Interaction, adversaire_id: str):
+
+
     ctx = await commands.Context.from_interaction(interaction)
-    adversaire = int(adversaire.replace("<@", "").replace(">", ""))
-    await interaction.response.send_message(content=plateau, view=Power4_Buttons(ctx, adversaire))
+
+    guild = bot.get_guild(634062663391117333)
+    user_id = ctx.message.author.id
+    user_name = ctx.message.author.name
+    adversaire = guild.get_member_named(adversaire_id)
+    adversaire_name = adversaire.name
+    adversaire_id = adversaire.id
+
+    plateau = f"**🔴 {user_name} VERSUS {adversaire_name} 🟡**\n\n"
+    plateau += f"\t{LETTERS}\n\t{BLACK_CASE*7}\n\t{BLACK_CASE*7}\n\t{BLACK_CASE*7}\n\t{BLACK_CASE*7}\n\t{BLACK_CASE*7}\n\t{BLACK_CASE*7}"
+    
+    await interaction.response.send_message(content=plateau, view=Power4_Buttons(user_id, adversaire_id, user_name, adversaire_name))
 
 
 class Power4_Buttons(discord.ui.View):
-    def __init__(self, ctx, adversaire):
+    def __init__(self, user_id, adversaire_id, user_name, adversaire_name, poule_bet=None):
         super().__init__(timeout=None)
         self.button = dict()
-        self.user_id = ctx.message.author.id
-        self.adversaire = adversaire
+        self.user_id = user_id
+        self.adversaire_id = adversaire_id
+        self.user_name = user_name
+        self.adversaire_name = adversaire_name
+        self.poule_bet = poule_bet
         self.tour = 0
         self.plateau = ""
         self.a = [BLACK_CASE, BLACK_CASE, BLACK_CASE,
@@ -55,7 +68,7 @@ class Power4_Buttons(discord.ui.View):
     async def interaction_check(self, interaction: discord.Interaction, /):
         self.tour += 1
         if self.tour % 2 == 0:
-            if interaction.user.id != self.adversaire:
+            if interaction.user.id != self.adversaire_id:
                 self.tour -= 1
                 await interaction.response.send_message(content="Pas ton tour", ephemeral=True)
                 return
@@ -77,26 +90,44 @@ class Power4_Buttons(discord.ui.View):
         for element in self.board[colomn]:
             if element != BLACK_CASE:
                 self.board[colomn][i-1] = color
-                line = i-1
+                # line = i-1
                 break
             elif i == 5:
                 self.board[colomn][i] = color
-                line = i
+                # line = i
                 break
             i += 1
 
-        self.plateau = LETTERS
+        self.plateau = f"**🔴 {self.user_name} VERSUS {self.adversaire_name} 🟡**\n\n"
 
         result = self.verif()
 
         if result != 0:
+            for element in result:
+                if color == RED_MARK:
+                    self.board[element[0]][element[1]] = "❤"
+                else:
+                    self.board[element[0]][element[1]] = "🔆 "
 
-            # for element in result:
-            #     self.board[element[0]][element[1]] = GREEN_MARK
             self.clear_items()
 
+            if self.tour % 2 == 0:
+                self.plateau += f"**{self.adversaire_name} REMPORTE**, {self.user_name} perd\n"
+            else:
+                self.plateau += f"**{self.user_name} REMPORTE**, {self.adversaire_name} perd\n"
+
+            if self.poule_bet != None:
+                if self.tour % 2 == 0:
+                    main_commands.sell_poule(main_commands.cur, main_commands.con, self.user_id, self.poule_bet[0])
+                    main_commands.add_poule_no_verif(main_commands.cur, main_commands.con, self.adversaire_id, self.poule_bet[0], main_commands.datetime.now())
+                else:
+                    main_commands.sell_poule(main_commands.cur, main_commands.con, self.adversaire_id, self.poule_bet[1])
+                    main_commands.add_poule_no_verif(main_commands.cur, main_commands.con, self.user_id, self.poule_bet[1], main_commands.datetime.now())
+
+        self.plateau += '\t'+LETTERS
+
         for hauteur in range(6):
-            self.plateau += "\n"
+            self.plateau += "\n\t"
             for largeur in range(7):
                 self.plateau += str(self.board[largeur][hauteur])
 

@@ -1,6 +1,7 @@
 import sqlite3
 from sqlite3 import Error
 from datetime import datetime
+
 path = "commands/poulytopia/poulytopia.db"
 def create_connection(path):
     connection = None
@@ -15,7 +16,7 @@ def create_connection(path):
 
 def do_sql(cur, sql):
     res = None
-    print(sql)
+    print(">>>"+sql)
     try:
         res = cur.execute(sql)
     except Error as e:
@@ -38,8 +39,7 @@ def get_poulailler(cur, fermier_id):
     return: data about poules: poule_name, price, production, path
     """
     res = do_sql(
-        cur, f"SELECT poules.poule_name, poules.price, poules.production, poulaillers.path FROM poules JOIN poulaillers ON \
-            poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id}").fetchall()
+        cur, f"SELECT poules.poule_name, poules.price, poules.production, poulaillers.path FROM poules JOIN poulaillers ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id}").fetchall()
     
     poules_dict = []
     for poule in res:
@@ -184,3 +184,20 @@ def insert_poule_prime(cur, con, fermier_id, poule_name, path):
     res = do_sql(cur, f"UPDATE poulaillers SET path = '{path}' WHERE fermier_id = {fermier_id} AND poule_name = '{poule_name}'").fetchone()
     con.commit()
     return None
+
+def get_single_poule_data(cur, poule_name):
+    res = do_sql(cur, f"SELECT * FROM poules WHERE poule_name='{poule_name}'").fetchone()
+    res = {
+        "poule_name": res[0],
+        "price": res[1],
+        "production": res[2],
+        "path": res[3]
+    }
+    return res
+
+def add_poule_no_verif(cur, con, fermier_id, poule_name, now):
+    poule_data = get_single_poule_data(cur, poule_name)
+    res = do_sql(
+        cur, f"INSERT INTO poulaillers (poule_name, fermier_id, last_harvest, path) VALUES (\"{poule_name}\", {fermier_id}, \"{now}\", \"{poule_data['path']}\")")
+    con.commit()
+    return res
