@@ -11,7 +11,7 @@ class photoButton(discord.ui.View):
         super().__init__()
         # self.path = image
         self.path = "commands/poulytopia/pictures/"+path
-        self.new_path = self.path[:-4:]+"_edit"+self.path[-4::]
+        self.new_path = self.path[:-4:]+"_edit"+str(random.randint(0,1000))+self.path[-4::]
         self.poule = poule
         self.fermier_id = fermier_id
         self.cur = cur

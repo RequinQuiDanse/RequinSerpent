@@ -301,11 +301,28 @@ class Poulailler_Buttons(discord.ui.View):
     description="Permet de parier des poules sur un puissance 4"
 )
 async def parier(interaction: discord.Interaction, adversaire:str):
+    """"""
+    await interaction.response.defer()
+    now = datetime.now()
+    fermier_id = interaction.user.id
+    fermier_exist(cur, con, fermier_id, now)
+
+    last_parie = get_last_pari(cur, fermier_id)
+    if last_parie != "0":
+        last_parie = datetime.strptime(last_parie, "%Y-%m-%d %H:%M:%S.%f")
+        diff = (now - last_parie).total_seconds()
+        if diff < 86400:
+            return await interaction.followup.send(
+                content=f"Prochain pari à 18h, attends encore :)",
+                ephemeral=True,
+            )
+
+    register_pari(cur, con, fermier_id, now)
     guild = bot.get_guild(769911179547246592)
     adversaire = guild.get_member_named(adversaire)
 
     embed = discord.Embed(title=f"{interaction.user.name} défie {adversaire.name}", description=f"{adversaire.name} va-t-il se défiler??")
-    await interaction.response.send_message(embed=embed, view = ParierSelectView([interaction.user, adversaire], []))
+    await interaction.followup.send(embed=embed, view = ParierSelectView([interaction.user, adversaire], []))
 
 class Daily_Button(discord.ui.View):
     """

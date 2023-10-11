@@ -72,10 +72,6 @@ def create_poule(cur, con, poule_name, price, production, path):
     con.commit()
     return res
 
-def get_last_tirage(cur, fermier_id):
-    res = do_sql(cur, f"SELECT last_tirage FROM fermiers WHERE fermier_id = {fermier_id}").fetchone()[0]
-    return res
-
 def get_random_poule(cur):
     res = do_sql(cur, f"SELECT * FROM poules ORDER BY RANDOM() LIMIT 1;").fetchone()
     res = {
@@ -86,9 +82,23 @@ def get_random_poule(cur):
     }
     return res
 
+def get_last_tirage(cur, fermier_id):
+    res = do_sql(cur, f"SELECT last_tirage FROM fermiers WHERE fermier_id = {fermier_id}").fetchone()[0]
+    return res
+
 def register_tirage(cur, con, fermier_id, now):
     time = str(now)[0:10]+" 18:00:00.000000"
     res = do_sql(cur, f"UPDATE fermiers SET last_tirage = '{time}' WHERE fermier_id = {fermier_id}")
+    con.commit()
+    return res
+
+def get_last_pari(cur, fermier_id):
+    res = do_sql(cur, f"SELECT last_pari FROM fermiers WHERE fermier_id = {fermier_id}").fetchone()[0]
+    return res
+
+def register_pari(cur, con, fermier_id, now):
+    time = str(now)[0:10]+" 18:00:00.000000"
+    res = do_sql(cur, f"UPDATE fermiers SET last_pari = '{time}' WHERE fermier_id = {fermier_id}")
     con.commit()
     return res
 
