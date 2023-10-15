@@ -22,6 +22,8 @@ async def poulailler(interaction: discord.Interaction, nom_du_fermier:str = None
         # fermier_id = int(fermier_id.replace("<@", "").replace(">", ""))
         guild = bot.get_guild(634062663391117333)
         user = guild.get_member_named(nom_du_fermier)
+        if user == None:
+            user = guild.get_member(int(nom_du_fermier.replace("<@", "").replace(">", "")))
         avatar = user.avatar
         fermier_id = user.id
         fermier_exist(cur, con, fermier_id, now)
@@ -64,14 +66,19 @@ async def create_poulee(
     interaction: discord.Interaction,
     poule_name: str,
     picture: discord.Attachment,
-    price: int=None,
-    production: int=None,
+    tier: int = 1,
+    family: str = None,
+    price: int = None,
+    production: int = None,
 ):
     """
     cmd to add poule to sql
     """
     await interaction.response.defer()
 
+    if tier == 2:
+        price = 350
+        production = 10
     if price == None:
         price = round(randint(50, 250), -1)
     
@@ -86,7 +93,7 @@ async def create_poulee(
     with open(f"commands/poulytopia/pictures/{filename}", "wb") as handler:
         handler.write(picture)
 
-    res = create_poule(cur, con, poule_name, price, production, filename)
+    res = create_poule(cur, con, poule_name, price, production, filename, tier, family)
     if res != None:
         embed = discord.Embed(title=f"{poule_name}")
         embed.add_field(name="Prix de la poule:", value=f"**{price}**🥚")
@@ -229,10 +236,11 @@ class Poulailler_Buttons(discord.ui.View):
         await interaction.response.defer()
 
         poule = self.poulailler[self.poule_place]
-
+        path = poule["path"]
+        new_path = path[:-4:]+"_edit"+str(randint(0,1000))+path[-4::]
         await interaction.followup.edit_message(
             message_id=interaction.message.id,
-            view=photoButton(path=poule["path"], poule=poule, fermier_id = self.fermier_id, cur=cur, con=con),
+            view=photoButton(path=path, new_path = new_path, poule=poule, fermier_id = self.fermier_id, cur=cur, con=con, trade_id=poule['trade_id']),
         )
 
     @discord.ui.button(label="Vendre", style=discord.ButtonStyle.danger)
@@ -313,16 +321,17 @@ async def parier(interaction: discord.Interaction, adversaire:str):
         diff = (now - last_parie).total_seconds()
         if diff < 86400:
             return await interaction.followup.send(
-                content=f"Prochain pari à 18h, attends encore :)",
+                content=f"Un seul pari par jour, prochain pari à 18h :)",
                 ephemeral=True,
             )
 
-    register_pari(cur, con, fermier_id, now)
     guild = bot.get_guild(769911179547246592)
-    adversaire = guild.get_member_named(adversaire)
+    adversaire_ = guild.get_member_named(adversaire)
+    if adversaire_ == None:
+        adversaire_ = guild.get_member(int(adversaire.replace("<@", "").replace(">", "")))
 
-    embed = discord.Embed(title=f"{interaction.user.name} défie {adversaire.name}", description=f"{adversaire.name} va-t-il se défiler??")
-    await interaction.followup.send(embed=embed, view = ParierSelectView([interaction.user, adversaire], []))
+    embed = discord.Embed(title=f"{interaction.user.name} défie {adversaire_.name}", description=f"{adversaire_.name} va-t-il se défiler??")
+    await interaction.followup.send(embed=embed, view = ChooseWhichPari([interaction.user, adversaire_]))
 
 class Daily_Button(discord.ui.View):
     """
@@ -391,7 +400,7 @@ class Market_Buttons(discord.ui.View):
                 attachments=[],
                 embed=None,
                 view=None,
-                content="Tu n'as plus de place dans le poulailler"
+                content=res
             )
 
         embed, file = create_embed(
@@ -645,9 +654,90 @@ class AcceptPari(discord.ui.View):
     ):
         if interaction.user.id != self.adversaires[1].id:
             return
-
+        
+        register_pari(cur, con, self.adversaires[0].id, datetime.now())
+        register_pari(cur, con, self.adversaires[1].id, datetime.now())
         plateau = f"**🔴 {self.adversaires[0].name} VERSUS {self.adversaires[1].name} 🟡**\n\n"
         plateau += f"\t{puissance4.LETTERS}\n\t{puissance4.BLACK_CASE*7}\n\t{puissance4.BLACK_CASE*7}\n\t{puissance4.BLACK_CASE*7}\n\t{puissance4.BLACK_CASE*7}\n\t{puissance4.BLACK_CASE*7}\n\t{puissance4.BLACK_CASE*7}"
     
         await interaction.response.edit_message(content = plateau, embed = None, view=puissance4.Power4_Buttons(self.adversaires[0].id, self.adversaires[1].id, self.adversaires[0].name, self.adversaires[1].name, self.poule_bet)
                                         )
+
+class ArgentSelect(discord.ui.Select):
+    """
+    create a select with the list of poules of the user
+    """
+    def __init__(self, adversaires):
+        self.adversaires = adversaires
+
+        options = [
+            discord.SelectOption(
+                label=i*100)
+                for i in range(24)
+        ]
+
+        super().__init__(placeholder='Choisis l\'argent que tu paris',
+                         min_values=1, max_values=1, options=options)
+
+    async def callback(self, interaction: discord.Interaction):
+        if interaction.user.id != self.adversaires[0].id:
+            return
+        
+        bet = int(self.values[0])
+        user_money = get_my_money(cur, self.adversaires[0].id)
+        adversaire_money = get_my_money(cur, self.adversaires[1].id)
+        if not (user_money >= bet and adversaire_money >= bet):
+            await interaction.response.edit_message(content="Vous n'avez pas assez d'argent pour parier des oeufs", view=None, embed=None)
+
+        embed = discord.Embed(title=f"{self.adversaires[0].name} défie {self.adversaires[1].name}", description=f"{self.adversaires[1].name}, acceptes tu le défi??")
+        embed.add_field(name=f"Le pari est de {bet}🥚 qui seront remportés par le vainqueur", value='')
+
+        await interaction.response.edit_message(embed=embed, view=AcceptPari(self.adversaires, bet))
+
+
+class ParierArgentSelectView(discord.ui.View):
+    def __init__(self, adversaires):
+        super().__init__()
+        self.add_item(ArgentSelect(adversaires))
+
+class ChooseWhichPari(discord.ui.View):
+    """
+    """
+    def __init__(self, adversaires):
+        super().__init__()
+        self.adversaires = adversaires
+
+    @discord.ui.button(label="Parier une poule", style=discord.ButtonStyle.green)
+    async def defi_poule(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        if interaction.user.id != self.adversaires[0].id:
+            return
+
+    
+        embed = discord.Embed(title=f"{self.adversaires[0].name} défie {self.adversaires[1].name}", description=f"{self.adversaires[1].name} va-t-il se défiler??")
+        await interaction.followup.send(embed=embed, view = ParierSelectView(self.adversaires, []))
+
+        
+    @discord.ui.button(label="Parier un tirage gratuit", style=discord.ButtonStyle.green)
+    async def defi_tirage(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        if interaction.user.id != self.adversaires[0].id:
+            return
+
+        embed = discord.Embed(title=f"{self.adversaires[0].name} défie {self.adversaires[1].name}", description=f"{self.adversaires[1].name}, acceptes tu le défi??")
+        embed.add_field(name=f"Le gagnant remporte un tirage gratuit. Le perdant ne perd rien.", value="")
+        await interaction.response.edit_message(embed=embed, view=AcceptPari(self.adversaires, "tirage"))
+                
+    @discord.ui.button(label="Parier des oeufs", style=discord.ButtonStyle.green)
+    async def defi_argent(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        if interaction.user.id != self.adversaires[0].id:
+            return
+
+        embed = discord.Embed(title=f"{self.adversaires[0].name} défie {self.adversaires[1].name}", description=f"{self.adversaires[1].name}, acceptes tu le défi??")
+        embed.add_field(name=f"Le gagnant remporte l'argent de l'autre", value="")
+        await interaction.response.edit_message(embed=embed, view=ParierArgentSelectView(self.adversaires))
+        

@@ -39,17 +39,18 @@ def get_poulailler(cur, fermier_id):
     return: data about poules: poule_name, price, production, path
     """
     res = do_sql(
-        cur, f"SELECT poules.poule_name, poules.price, poules.production, poulaillers.path FROM poules JOIN poulaillers ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id}").fetchall()
+        cur, f"SELECT poules.poule_name, poules.price, poules.production, poulaillers.path, poulaillers.trade_id FROM poules JOIN poulaillers ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id}").fetchall()
     
     poules_dict = []
     for poule in res:
         # Décompacte les valeurs de la sous-liste
-        poule_name, price, production, path = poule
+        poule_name, price, production, path, trade_id = poule
         poules_dict.append({
             "poule_name": poule_name,
             "price": price,
             "production": production,
-            "path": path
+            "path": path,
+            "trade_id": trade_id
         })
     return poules_dict
 
@@ -66,14 +67,19 @@ def add_poule(cur, con, poule_name, fermier_id, now, path):
     return res
 
 
-def create_poule(cur, con, poule_name, price, production, path):
-    res = do_sql(
-        cur, f"INSERT INTO poules (poule_name, price, production, path) VALUES ('{poule_name}', {price}, {production}, '{path}')")
+def create_poule(cur, con, poule_name, price, production, path, tier, family):
+    if family == None:
+        res = do_sql(
+            cur, f"INSERT INTO poules (poule_name, price, production, path, tier, family) VALUES ('{poule_name}', {price}, {production}, '{path}', {tier}, NULL)")
+    else:
+        res = do_sql(
+            cur, f"INSERT INTO poules (poule_name, price, production, path, tier, family) VALUES ('{poule_name}', {price}, {production}, '{path}', {tier}, '{family}')")
+
     con.commit()
     return res
 
 def get_random_poule(cur):
-    res = do_sql(cur, f"SELECT * FROM poules ORDER BY RANDOM() LIMIT 1;").fetchone()
+    res = do_sql(cur, f"SELECT * FROM poules WHERE tier = 1 ORDER BY RANDOM() LIMIT 1;").fetchone()
     res = {
         "poule_name": res[0],
         "price": res[1],
@@ -120,29 +126,52 @@ def gain_money(cur, con, fermier_id, value):
     con.commit()
     return res
 
+def lose_money(cur, con, fermier_id, value):
+    res = do_sql(cur, f"UPDATE fermiers SET oeufs = oeufs - {value} WHERE fermier_id = {fermier_id}")
+    con.commit()
+    return res
+
 def get_my_money(cur, fermier_id):
     res = do_sql(cur, f"SELECT fermiers.oeufs FROM fermiers WHERE fermier_id = {fermier_id}").fetchone()[0]
     return res
 
 def get_last_harvest(cur, con, fermier_id, now):
-    res = do_sql(cur, f"SELECT poules.production, poulaillers.last_harvest, poulaillers.poule_name FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id}").fetchall()
+    res = do_sql(cur, f"SELECT poules.production, poulaillers.last_harvest, poulaillers.poule_name FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} AND poules.tier = 1").fetchall()
     oeufs_produits = 0
     for production, last_harvest, poule_name in res:
         last_harvest = datetime.strptime(last_harvest, "%Y-%m-%d %H:%M:%S.%f")
         diff = (now - last_harvest).total_seconds()
         hours = diff//3600
         oeufs_produits += int(production * hours)
-        do_sql(cur, f"UPDATE poulaillers SET last_harvest = '{now}' WHERE fermier_id = {fermier_id} AND poule_name='{poule_name}'")
+        do_sql(cur, f"UPDATE poulaillers SET last_harvest = '{str(now)[0:14]+'00:00.000000'}' WHERE fermier_id = {fermier_id} AND poule_name='{poule_name}'")
+
+    res2 = do_sql(cur, f"SELECT poules.family FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} AND poules.tier = 2").fetchall()
+    for family in res2:
+        family_poules = []
+        res = do_sql(cur, f"SELECT poules.production, poulaillers.last_harvest, poulaillers.poule_name FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} AND poules.family = {family}").fetchall()
+        print(res)
+        family_poules.append(res)
+        for production, last_harvest, poule_name in res:
+            last_harvest = datetime.strptime(last_harvest, "%Y-%m-%d %H:%M:%S.%f")
+            diff = (now - last_harvest).total_seconds()
+            hours = diff//3600
+            if len(family_poules) == 5:
+                oeufs_produits += int(production * hours)*2
+            else:
+                oeufs_produits += int(production * hours)
+            do_sql(cur, f"UPDATE poulaillers SET last_harvest = '{str(now)[0:14]+'00:00.000000'}' WHERE fermier_id = {fermier_id} AND poule_name='{poule_name}'")
+
 
     gain_money(cur, con, fermier_id, oeufs_produits)
     return oeufs_produits
+
 
 def get_last_market(cur):
     res = do_sql(cur, f"SELECT last_market FROM market").fetchone()[0]
     return res
 
 def register_market(cur, con, now):
-    poules = do_sql(cur, f"SELECT * FROM poules ORDER BY RANDOM() LIMIT 5;").fetchall()
+    poules = do_sql(cur, f"SELECT * FROM poules WHERE tier = 1 ORDER BY RANDOM() LIMIT 5;").fetchall()
     time = str(now)[0:10]+" 18:00:00.000000"
     do_sql(cur, "DELETE FROM market")
     for poule in poules:
@@ -165,10 +194,13 @@ def get_market(cur):
 def buy_poule(cur, con, fermier_id, poule, now, path):
     oeufs = get_fermier_oeufs(cur, fermier_id)
     if oeufs < poule['price']:
-        return "Tu n'as pas assez d'argent bouffon"
+        return "T'as pas assez d'argent bouffon"
+    count = do_sql(cur, f"SELECT COUNT(*) FROM poulaillers WHERE poule_name = '{poule['poule_name']}' AND fermier_id = {fermier_id}").fetchone()[0]
+    if count >= 2:
+        return "T'as déjà un doublon de cette poule, innoves un peu"
     res = add_poule(cur, con, poule['poule_name'], fermier_id, now, path)
     if type(res) == str:
-        return "Pas place dans poulailler"
+        return "Pas la place dans ton poulailler"
     do_sql(cur, f"UPDATE fermiers SET oeufs = oeufs - {poule['price']} WHERE fermier_id = {fermier_id}")
     con.commit()
     return 0
@@ -190,8 +222,8 @@ def lvl_up_fermier(cur, con, fermier_lvl, fermier_id):
     con.commit()
     return 0
 
-def insert_poule_prime(cur, con, fermier_id, poule_name, path):
-    res = do_sql(cur, f"UPDATE poulaillers SET path = '{path}' WHERE fermier_id = {fermier_id} AND poule_name = '{poule_name}'").fetchone()
+def insert_poule_prime(cur, con, fermier_id, poule_name, path, trade_id):
+    res = do_sql(cur, f"UPDATE poulaillers SET path = '{path}' WHERE trade_id = {trade_id} AND poule_name = '{poule_name}' AND fermier_id = {fermier_id}").fetchone()
     con.commit()
     return None
 

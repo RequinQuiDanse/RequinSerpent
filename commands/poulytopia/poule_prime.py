@@ -7,15 +7,16 @@ class photoButton(discord.ui.View):
     """
     create all the buttons that permit to do edits on a pic
     """
-    def __init__(self, path, poule, fermier_id, cur, con):
+    def __init__(self, path, new_path, poule, fermier_id, cur, con, trade_id):
         super().__init__()
         # self.path = image
         self.path = "commands/poulytopia/pictures/"+path
-        self.new_path = self.path[:-4:]+"_edit"+str(random.randint(0,1000))+self.path[-4::]
+        self.new_path = "commands/poulytopia/pictures/"+new_path
         self.poule = poule
         self.fermier_id = fermier_id
         self.cur = cur
         self.con = con
+        self.trade_id = trade_id
         
     @discord.ui.button(label='Black&White', style=discord.ButtonStyle.gray)
     async def Edge(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -171,7 +172,7 @@ class photoButton(discord.ui.View):
             embed, file = main_commands.create_embed(title=self.poule['poule_name'], poule=self.poule, fermier_id=self.fermier_id, path=self.new_path.replace("commands/poulytopia/pictures/",""))
             await interaction.response.edit_message(attachments=[discord.File(self.new_path)], embed=embed)
 
-    @discord.ui.button(label='Reset', style=discord.ButtonStyle.green)
+    @discord.ui.button(label='Annulé changements', style=discord.ButtonStyle.green)
     async def Reset(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.fermier_id != interaction.user.id:
             return
@@ -181,8 +182,8 @@ class photoButton(discord.ui.View):
             await interaction.response.edit_message(attachments=[discord.File(self.new_path)], embed=embed)
 
 
-    @discord.ui.button(label='Fini', style=discord.ButtonStyle.green)
-    async def Fini(self, interaction: discord.Interaction, button: discord.ui.Button):
+    @discord.ui.button(label='Enregistrer les changements', style=discord.ButtonStyle.green)
+    async def fini(self, interaction: discord.Interaction, button: discord.ui.Button):
         if self.fermier_id != interaction.user.id:
             return
         self.clear_items()
@@ -192,7 +193,8 @@ class photoButton(discord.ui.View):
             img = Image(filename=self.path)
         img.save(filename=self.new_path)
         embed, file = main_commands.create_embed(title=self.poule['poule_name'], poule=self.poule, fermier_id=self.fermier_id, path=self.new_path.replace("commands/poulytopia/pictures/",""))
-        main_commands.insert_poule_prime(self.cur, self.con, self.fermier_id, self.poule["poule_name"], self.new_path.replace("commands/poulytopia/pictures/",""))
+        main_commands.insert_poule_prime(self.cur, self.con, self.fermier_id, self.poule["poule_name"], self.new_path.replace("commands/poulytopia/pictures/",""), self.trade_id)
+        self.clear_items()
+        img.close()
         await interaction.response.edit_message(attachments=[discord.File(self.new_path)], embed=embed, view=main_commands.BackToPoulailler(self.fermier_id))
         #os.remove(f"photo-{self.idImage}.jpg")
-        img.close()

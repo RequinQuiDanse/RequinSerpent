@@ -66,6 +66,7 @@ class Power4_Buttons(discord.ui.View):
             self.add_item(self.button[add])
 
     async def interaction_check(self, interaction: discord.Interaction, /):
+        await interaction.response.defer()
         self.tour += 1
         if self.tour % 2 == 0:
             if interaction.user.id != self.adversaire_id:
@@ -105,7 +106,7 @@ class Power4_Buttons(discord.ui.View):
         if result != 0:
             for element in result:
                 if color == RED_MARK:
-                    self.board[element[0]][element[1]] = "❤"
+                    self.board[element[0]][element[1]] = "❤ "
                 else:
                     self.board[element[0]][element[1]] = "🔆 "
 
@@ -116,13 +117,34 @@ class Power4_Buttons(discord.ui.View):
             else:
                 self.plateau += f"**{self.user_name} REMPORTE**, {self.adversaire_name} perd\n"
 
-            if self.poule_bet != None:
+            if self.tour % 2 == 0:
+                winner_id = self.adversaire_id
+                loser_id = self.user_id
+            else:
+                winner_id = self.user_id
+                loser_id = self.adversaire_id
+
+            if type(self.poule_bet) == list:
                 if self.tour % 2 == 0:
-                    main_commands.sell_poule(main_commands.cur, main_commands.con, self.user_id, self.poule_bet[0])
-                    main_commands.add_poule_no_verif(main_commands.cur, main_commands.con, self.adversaire_id, self.poule_bet[0], main_commands.datetime.now())
+                    main_commands.sell_poule(main_commands.cur, main_commands.con, loser_id, self.poule_bet[0])
+                    main_commands.add_poule_no_verif(main_commands.cur, main_commands.con, winner_id, self.poule_bet[0], main_commands.datetime.now())
                 else:
-                    main_commands.sell_poule(main_commands.cur, main_commands.con, self.adversaire_id, self.poule_bet[1])
-                    main_commands.add_poule_no_verif(main_commands.cur, main_commands.con, self.user_id, self.poule_bet[1], main_commands.datetime.now())
+                    main_commands.sell_poule(main_commands.cur, main_commands.con, loser_id, self.poule_bet[1])
+                    main_commands.add_poule_no_verif(main_commands.cur, main_commands.con, winner_id, self.poule_bet[1], main_commands.datetime.now())
+
+            elif self.poule_bet == "tirage":
+                poule = main_commands.get_random_poule(main_commands.cur)
+
+                embed, file = main_commands.create_embed(
+                    title=f"**{poule['poule_name']}**", poule=poule, avatar=None, fermier_id=winner_id)
+                
+                await interaction.followup.send(
+                    file=file, embed=embed, view=main_commands.Daily_Button(poule, winner_id)
+                )
+
+            elif type(self.poule_bet) == int:
+                main_commands.gain_money(main_commands.cur, main_commands.con, fermier_id = winner_id, value=self.poule_bet)
+                main_commands.lose_money(main_commands.cur, main_commands.con, fermier_id = loser_id, value=self.poule_bet)
 
         self.plateau += '\t'+LETTERS
 
@@ -131,7 +153,16 @@ class Power4_Buttons(discord.ui.View):
             for largeur in range(7):
                 self.plateau += str(self.board[largeur][hauteur])
 
-        await interaction.response.edit_message(content=self.plateau, view=self)
+        await interaction.followup.edit_message(message_id=interaction.message.id, content=self.plateau, view=self)
+
+    async def on_timeout(self):
+        if type(self.poule_bet) == list:
+            if self.tour % 2 == 0:
+                main_commands.sell_poule(main_commands.cur, main_commands.con, self.user_id, self.poule_bet[0])
+                main_commands.add_poule_no_verif(main_commands.cur, main_commands.con, self.adversaire_id, self.poule_bet[0], main_commands.datetime.now())
+            else:
+                main_commands.sell_poule(main_commands.cur, main_commands.con, self.adversaire_id, self.poule_bet[1])
+                main_commands.add_poule_no_verif(main_commands.cur, main_commands.con, self.user_id, self.poule_bet[1], main_commands.datetime.now())
 
     def verif(self):
         # Vérifie toutes les combinaisons de 4 pions sur le tableau
