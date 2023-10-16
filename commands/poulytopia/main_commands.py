@@ -26,37 +26,25 @@ async def poulailler(interaction: discord.Interaction, nom_du_fermier:str = None
             user = guild.get_member(int(nom_du_fermier.replace("<@", "").replace(">", "")))
         avatar = user.avatar
         fermier_id = user.id
-        fermier_exist(cur, con, fermier_id, now)
-        embed = discord.Embed(title="Son poulailler")
-        poulailler = get_poulailler(cur, fermier_id)
-        poulailler_data = get_poulailler_data(cur, fermier_id)
-        if len(poulailler) != 0:
-            poule = poulailler[0]
-            embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[
-                                    0, poulailler_data['amount']], avatar=avatar, fermier_id=fermier_id)
-            await interaction.followup.send(file=file, embed=embed, view=Poulailler_Visite(poulailler, poulailler_data, fermier_id, avatar)
-                                            )
-        else:
-            embed.add_field(name="Il ou elle n'a aucune poule", value="Aucune")
-            await interaction.followup.send(embed=embed
-                                            )
     else:
         fermier_id = interaction.user.id
-        fermier_exist(cur, con, fermier_id, now)
+        avatar= interaction.user.avatar
 
-        embed = discord.Embed(title="Ton poulailler")
-        poulailler = get_poulailler(cur, fermier_id)
-        poulailler_data = get_poulailler_data(cur, fermier_id)
-        if len(poulailler) != 0:
-            poule = poulailler[0]
-            embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[
-                                    0, poulailler_data['amount']], avatar=interaction.user.avatar, fermier_id=fermier_id)
-            await interaction.followup.send(file=file, embed=embed, view=Poulailler_Buttons(poulailler, poulailler_data, fermier_id, interaction.user.avatar)
-                                            )
-        else:
-            embed.add_field(name="Tu n'as aucune poule", value="Aucune ")
-            await interaction.followup.send(embed=embed
-                                            )
+    fermier_exist(cur, con, fermier_id, now)
+
+    embed = discord.Embed(title="Poulailler")
+    poulailler = get_poulailler(cur, fermier_id)
+    poulailler_data = get_poulailler_data(cur, fermier_id)
+    if len(poulailler) != 0:
+        poule = poulailler[0]
+        embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[
+                                0, poulailler_data['amount']], avatar=avatar, fermier_id=fermier_id)
+        await interaction.followup.send(file=file, embed=embed, view=Poulailler_Buttons(poulailler, poulailler_data, fermier_id, avatar)
+                                        )
+    else:
+        embed.add_field(name="Aucune poule", value="Aucune ")
+        await interaction.followup.send(embed=embed
+                                        )
 
 
 @bot.tree.command(
@@ -137,7 +125,8 @@ async def tirage(interaction: discord.Interaction):
             )
 
     register_tirage(cur, con, fermier_id, now)
-    poule = get_random_poule(cur)
+    tier = round((get_fermier_lvl(cur, fermier_id)/10)+0.5)
+    poule = get_random_poule(cur, tier)
 
     embed, file = create_embed(
         title=f"**{poule['poule_name']}**", poule=poule, avatar=interaction.user.avatar, fermier_id=fermier_id)
@@ -168,6 +157,7 @@ async def magazin(interaction: discord.Interaction):
 
     market = get_market(cur)
     poule = market[0]
+    print(poule)
     embed, file = create_embed(
         title=f"**{poule['poule_name']}**", poule=poule, poule_place=[0, 5], fermier_id=fermier_id)
 
@@ -455,6 +445,7 @@ class Market_Buttons(discord.ui.View):
 def create_embed(title, poule, fermier_id, poule_place=None, avatar=None, path=None):
     if path==None:
         path=poule["path"]
+
     embed = discord.Embed(
         title=title
     )
@@ -473,6 +464,8 @@ def create_embed(title, poule, fermier_id, poule_place=None, avatar=None, path=N
         f"commands/poulytopia/pictures/{path}",
         filename=path,
     )
+    if poule['family'] != None:
+        embed.add_field(name="Famille:", value=poule['family'])
     if avatar is not None:
         embed.set_thumbnail(url=avatar)
     if poule_place is not None:

@@ -39,18 +39,19 @@ def get_poulailler(cur, fermier_id):
     return: data about poules: poule_name, price, production, path
     """
     res = do_sql(
-        cur, f"SELECT poules.poule_name, poules.price, poules.production, poulaillers.path, poulaillers.trade_id FROM poules JOIN poulaillers ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id}").fetchall()
+        cur, f"SELECT poules.poule_name, poules.price, poules.production, poulaillers.path, poulaillers.trade_id, poules.family FROM poules JOIN poulaillers ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id}").fetchall()
     
     poules_dict = []
     for poule in res:
         # Décompacte les valeurs de la sous-liste
-        poule_name, price, production, path, trade_id = poule
+        poule_name, price, production, path, trade_id, family= poule
         poules_dict.append({
             "poule_name": poule_name,
             "price": price,
             "production": production,
             "path": path,
-            "trade_id": trade_id
+            "trade_id": trade_id,
+            "family": family
         })
     return poules_dict
 
@@ -78,13 +79,14 @@ def create_poule(cur, con, poule_name, price, production, path, tier, family):
     con.commit()
     return res
 
-def get_random_poule(cur):
-    res = do_sql(cur, f"SELECT * FROM poules WHERE tier = 1 ORDER BY RANDOM() LIMIT 1;").fetchone()
+def get_random_poule(cur, tier):
+    res = do_sql(cur, f"SELECT * FROM poules WHERE tier = {tier} ORDER BY RANDOM() LIMIT 1;").fetchone()
     res = {
         "poule_name": res[0],
         "price": res[1],
         "production": res[2],
-        "path": res[3]
+        "path": res[3],
+        "family": res[4]
     }
     return res
 
@@ -93,7 +95,11 @@ def get_last_tirage(cur, fermier_id):
     return res
 
 def register_tirage(cur, con, fermier_id, now):
-    time = str(now)[0:10]+" 18:00:00.000000"
+    now = str(now)
+    if str(now)[11:13] < 18:
+        time = now[0:8]+str(int(now[8:10])-1)+" 18:00:00.000000"
+    else:
+        time = str(now)[0:10]+" 18:00:00.000000"
     res = do_sql(cur, f"UPDATE fermiers SET last_tirage = '{time}' WHERE fermier_id = {fermier_id}")
     con.commit()
     return res
@@ -103,7 +109,11 @@ def get_last_pari(cur, fermier_id):
     return res
 
 def register_pari(cur, con, fermier_id, now):
-    time = str(now)[0:10]+" 18:00:00.000000"
+    now = str(now)
+    if str(now)[11:13] < 18:
+        time = now[0:8]+str(int(now[8:10])-1)+" 18:00:00.000000"
+    else:
+        time = str(now)[0:10]+" 18:00:00.000000"
     res = do_sql(cur, f"UPDATE fermiers SET last_pari = '{time}' WHERE fermier_id = {fermier_id}")
     con.commit()
     return res
@@ -146,16 +156,17 @@ def get_last_harvest(cur, con, fermier_id, now):
         do_sql(cur, f"UPDATE poulaillers SET last_harvest = '{str(now)[0:14]+'00:00.000000'}' WHERE fermier_id = {fermier_id} AND poule_name='{poule_name}'")
 
     res2 = do_sql(cur, f"SELECT poules.family FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} AND poules.tier = 2").fetchall()
-    for family in res2:
-        family_poules = []
-        res = do_sql(cur, f"SELECT poules.production, poulaillers.last_harvest, poulaillers.poule_name FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} AND poules.family = {family}").fetchall()
+    for family in res2[0]:
+        family_poules = 0
+        res = do_sql(cur, f"SELECT poules.production, poulaillers.last_harvest, poulaillers.poule_name FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} AND poules.family = '{family}'").fetchall()
         print(res)
-        family_poules.append(res)
         for production, last_harvest, poule_name in res:
+            family_poules+=1
             last_harvest = datetime.strptime(last_harvest, "%Y-%m-%d %H:%M:%S.%f")
             diff = (now - last_harvest).total_seconds()
             hours = diff//3600
-            if len(family_poules) == 5:
+            print("ICI", family_poules)
+            if family_poules >= 5:
                 oeufs_produits += int(production * hours)*2
             else:
                 oeufs_produits += int(production * hours)
@@ -172,7 +183,12 @@ def get_last_market(cur):
 
 def register_market(cur, con, now):
     poules = do_sql(cur, f"SELECT * FROM poules WHERE tier = 1 ORDER BY RANDOM() LIMIT 5;").fetchall()
-    time = str(now)[0:10]+" 18:00:00.000000"
+    now = str(now)
+    if str(now)[11:13] < 18:
+        time = now[0:8]+str(int(now[8:10])-1)+" 18:00:00.000000"
+    else:
+        time = str(now)[0:10]+" 18:00:00.000000"
+
     do_sql(cur, "DELETE FROM market")
     for poule in poules:
         do_sql(cur, f"INSERT INTO market VALUES ('{poule[0]}','{time}')")
@@ -187,7 +203,8 @@ def get_market(cur):
             "poule_name": poules[0],
             "price": poules[1],
             "production": poules[2],
-            "path": poules[3]
+            "path": poules[3],
+            "family": poules[5]
         })
     return market
 
@@ -233,7 +250,8 @@ def get_single_poule_data(cur, poule_name):
         "poule_name": res[0],
         "price": res[1],
         "production": res[2],
-        "path": res[3]
+        "path": res[3],
+        "family": res[4]
     }
     return res
 
