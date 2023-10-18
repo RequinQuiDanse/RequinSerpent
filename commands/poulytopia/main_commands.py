@@ -125,8 +125,7 @@ async def tirage(interaction: discord.Interaction):
             )
 
     register_tirage(cur, con, fermier_id, now)
-    tier = round((get_fermier_lvl(cur, fermier_id)/10)+0.5)
-    poule = get_random_poule(cur, tier)
+    poule = get_random_poule(cur, fermier_id)
 
     embed, file = create_embed(
         title=f"**{poule['poule_name']}**", poule=poule, avatar=interaction.user.avatar, fermier_id=fermier_id)
@@ -157,7 +156,6 @@ async def magazin(interaction: discord.Interaction):
 
     market = get_market(cur)
     poule = market[0]
-    print(poule)
     embed, file = create_embed(
         title=f"**{poule['poule_name']}**", poule=poule, poule_place=[0, 5], fermier_id=fermier_id)
 
@@ -279,7 +277,7 @@ class Poulailler_Buttons(discord.ui.View):
         embed.add_field(name="Nombre d'oeufs récupérés:",
                         value=f"**{oeufs_produits}**🥚 récupérés")
         await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed,
-                                                 view=BackToPoulailler(self.fermier_id), attachments=[]
+                                                 view=None, attachments=[]
                                                 )
 
     @discord.ui.button(label=f"Monter de niveau", style=discord.ButtonStyle.green)
@@ -322,6 +320,33 @@ async def parier(interaction: discord.Interaction, adversaire:str):
 
     embed = discord.Embed(title=f"{interaction.user.name} défie {adversaire_.name}", description=f"{adversaire_.name} va-t-il se défiler??")
     await interaction.followup.send(embed=embed, view = ChooseWhichPari([interaction.user, adversaire_]))
+
+@bot.tree.command(
+    description="Classement des meilleurs poulaillers"
+)
+async def poulaillers_classement(interaction: discord.Interaction):
+    """
+    cmd to classment
+    """
+    await interaction.response.defer()
+
+    fermier_data = get_fermiers_data(cur)
+    embed = discord.Embed(title="Classement des fermiers")
+    print(fermier_data)
+    i = 1
+    for fermier in fermier_data:
+        try:
+            guild = bot.get_guild(634062663391117333)
+            user = guild.get_member(fermier['fermier_id'])
+            embed.add_field(name=f"{i}. "+user.name, value=f"Niveau: {fermier['level']}, Oeufs: {fermier['oeufs']}")
+            i+=1
+        except:
+            pass
+
+    await interaction.followup.send(
+        embed=embed, ephemeral=False
+    )
+
 
 class Daily_Button(discord.ui.View):
     """
@@ -465,7 +490,7 @@ def create_embed(title, poule, fermier_id, poule_place=None, avatar=None, path=N
         filename=path,
     )
     if poule['family'] != None:
-        embed.add_field(name="Famille:", value=poule['family'])
+        embed.add_field(name=f"Famille {poule['family']}", value='')
     if avatar is not None:
         embed.set_thumbnail(url=avatar)
     if poule_place is not None:

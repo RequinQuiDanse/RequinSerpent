@@ -133,7 +133,7 @@ class Power4_Buttons(discord.ui.View):
                     main_commands.add_poule_no_verif(main_commands.cur, main_commands.con, winner_id, self.poule_bet[1], main_commands.datetime.now())
 
             elif self.poule_bet == "tirage":
-                poule = main_commands.get_random_poule(main_commands.cur)
+                poule = main_commands.get_random_poule(main_commands.cur, winner_id)
 
                 embed, file = main_commands.create_embed(
                     title=f"**{poule['poule_name']}**", poule=poule, avatar=None, fermier_id=winner_id)
