@@ -14,7 +14,7 @@ async def puissance_4(interaction: discord.Interaction, adversaire_id: str):
 
     ctx = await commands.Context.from_interaction(interaction)
 
-    guild = bot.get_guild(634062663391117333)
+    guild = bot.get_guild(interaction.guild.id)
     user_id = ctx.message.author.id
     user_name = ctx.message.author.name
     adversaire = guild.get_member_named(adversaire_id)

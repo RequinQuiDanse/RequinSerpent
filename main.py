@@ -46,6 +46,7 @@ async def on_ready():
     #print("Sync")
     await bot.tree.sync() # guild = discord.Object(id=769911179547246592) else None
 
+    # await bot.change_presence(status=discord.Status.invisible)
     await asyncio.sleep(5)
     commands = []
     for x in glob.glob("commands/*.py"):

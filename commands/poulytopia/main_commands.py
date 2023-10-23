@@ -20,31 +20,47 @@ async def poulailler(interaction: discord.Interaction, nom_du_fermier:str = None
     await interaction.response.defer()
     if nom_du_fermier != None:
         # fermier_id = int(fermier_id.replace("<@", "").replace(">", ""))
-        guild = bot.get_guild(634062663391117333)
+        guild = bot.get_guild(interaction.guild.id)
         user = guild.get_member_named(nom_du_fermier)
         if user == None:
             user = guild.get_member(int(nom_du_fermier.replace("<@", "").replace(">", "")))
         avatar = user.avatar
         fermier_id = user.id
+        
+        embed = discord.Embed(title="Poulailler")
+        poulailler = get_poulailler(cur, fermier_id)
+        poulailler_data = get_poulailler_data(cur, fermier_id)
+        if len(poulailler) != 0:
+            poule = poulailler[0]
+            embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[
+                                    0, poulailler_data['amount']], avatar=avatar, fermier_id=fermier_id)
+
+            await interaction.followup.send(file=file, embed=embed, view=Poulailler_Visite(poulailler, poulailler_data, fermier_id, avatar)
+                                            )
+        else:
+            embed.add_field(name="Aucune poule", value="Aucune ")
+            await interaction.followup.send(embed=embed
+                                            )
     else:
         fermier_id = interaction.user.id
         avatar= interaction.user.avatar
 
-    fermier_exist(cur, con, fermier_id, now)
+        fermier_exist(cur, con, fermier_id, now)
 
-    embed = discord.Embed(title="Poulailler")
-    poulailler = get_poulailler(cur, fermier_id)
-    poulailler_data = get_poulailler_data(cur, fermier_id)
-    if len(poulailler) != 0:
-        poule = poulailler[0]
-        embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[
-                                0, poulailler_data['amount']], avatar=avatar, fermier_id=fermier_id)
-        await interaction.followup.send(file=file, embed=embed, view=Poulailler_Buttons(poulailler, poulailler_data, fermier_id, avatar)
-                                        )
-    else:
-        embed.add_field(name="Aucune poule", value="Aucune ")
-        await interaction.followup.send(embed=embed
-                                        )
+        embed = discord.Embed(title="Poulailler")
+        poulailler = get_poulailler(cur, fermier_id)
+        poulailler_data = get_poulailler_data(cur, fermier_id)
+        if len(poulailler) != 0:
+            poule = poulailler[0]
+            embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[
+                                    0, poulailler_data['amount']], avatar=avatar, fermier_id=fermier_id)
+
+            await interaction.followup.send(file=file, embed=embed, view=Poulailler_Buttons(poulailler, poulailler_data, fermier_id, avatar)
+                                            )
+        else:
+            embed.add_field(name="Aucune poule", value="Aucune ")
+            await interaction.followup.send(embed=embed
+                                            )
 
 
 @bot.tree.command(
@@ -271,11 +287,16 @@ class Poulailler_Buttons(discord.ui.View):
         await interaction.response.defer()
         now = datetime.now()
 
-        oeufs_produits = get_last_harvest(cur, con, self.fermier_id, now)
+        oeufs_produits, taxes = get_last_harvest(cur, con, self.fermier_id, now)
 
         embed = discord.Embed(title=f"Résultat de la récolte d'oeufs")
+        embed.add_field(name="Nombre d'oeufs produits:",
+                        value=f"**{oeufs_produits}**🥚")
+        embed.add_field(name="Prix de l'entretien du poulailler:",
+                        value=f"**{taxes}**🥚")
         embed.add_field(name="Nombre d'oeufs récupérés:",
-                        value=f"**{oeufs_produits}**🥚 récupérés")
+                        value=f"**{round(oeufs_produits-taxes)}**🥚")
+        embed.set_footer(text="Le coût de l'entretien du poulailler dépend de la taille du poulailler.\n Pour plus de détail: y=⁅(𝑥/8)^2 𝑥⋅c⁆ avec x le niveau du poulailler et c le nb d'heures depuis dernier entretien")
         await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed,
                                                  view=None, attachments=[]
                                                 )
@@ -290,8 +311,34 @@ class Poulailler_Buttons(discord.ui.View):
         embed.add_field(name="Prix", value=str(fermier_lvl*100)+"🥚")
         embed.add_field(name="Avantage",
                         value="Augmente de 1 la taille de ton poulailler")
+        embed.add_field(name="Désavantage:",
+                        value=f"Prix entretien sur 24h:\nMaintenant: {round(24 * fermier_lvl * (int(fermier_lvl/8)**2))}🥚\nAprès:{round(24 * (fermier_lvl+1) * (int((fermier_lvl+1)/8)**2))}🥚")
         await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed, view=Lvl_Up_Button(fermier_lvl, self.fermier_id, self.avatar), attachments=[]
                                                 )
+    @discord.ui.button(label="Améliorer la production de la poule", style=discord.ButtonStyle.green)
+    async def upgrade(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        if self.fermier_id != interaction.user.id:
+            return
+        await interaction.response.defer()
+
+        poule = self.poulailler[self.poule_place]
+        production = poule["production"]
+        embed = discord.Embed(title="Améliorer la production")
+        embed.add_field(name="Prix", value=str(production*115)+"🥚")
+        embed.add_field(name="Avantage",
+                        value="Améliore définitivement de 1 la production de ta poule")
+        await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed, view=Lvl_Up_Poule_Button(self.fermier_id, self.avatar, poule), attachments=[]
+                                                )
+
+    @discord.ui.button(label=f"Statistiques", style=discord.ButtonStyle.green)
+    async def stats(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        if self.fermier_id != interaction.user.id:
+            return
+        await interaction.response.defer()
+
+        embed = embed_for_stats(self.fermier_id, interaction.user.avatar)
+
+        await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed, view=BackToPoulailler(self.fermier_id), attachments=[])
 
 @bot.tree.command(
     description="Permet de parier des poules sur un puissance 4"
@@ -313,7 +360,7 @@ async def parier(interaction: discord.Interaction, adversaire:str):
                 ephemeral=True,
             )
 
-    guild = bot.get_guild(769911179547246592)
+    guild = bot.get_guild(interaction.guild.id)
     adversaire_ = guild.get_member_named(adversaire)
     if adversaire_ == None:
         adversaire_ = guild.get_member(int(adversaire.replace("<@", "").replace(">", "")))
@@ -334,10 +381,12 @@ async def poulaillers_classement(interaction: discord.Interaction):
     embed = discord.Embed(title="Classement des fermiers")
     print(fermier_data)
     i = 1
+    guild = bot.get_guild(interaction.guild.id.id)
+    print(guild)
     for fermier in fermier_data:
         try:
-            guild = bot.get_guild(634062663391117333)
             user = guild.get_member(fermier['fermier_id'])
+            print(user)
             embed.add_field(name=f"{i}. "+user.name, value=f"Niveau: {fermier['level']}, Oeufs: {fermier['oeufs']}")
             i+=1
         except:
@@ -366,7 +415,7 @@ class Daily_Button(discord.ui.View):
             return
         await interaction.response.defer()
         now = datetime.now()
-        res = add_poule(cur, con, self.poule["poule_name"], self.fermier_id, now, self.poule["path"])
+        res = add_poule(cur, con, self.poule["poule_name"], self.fermier_id, now, self.poule["path"], self.poule["production"])
         if type(res) == str:
             embed, file = create_embed(title=f"Poulailller plus place! Lvl up vite pour récupérer ta poule",
                                        poule=self.poule, avatar=interaction.user.avatar, fermier_id=self.fermier_id)
@@ -414,7 +463,7 @@ class Market_Buttons(discord.ui.View):
                 message_id=interaction.message.id,
                 attachments=[],
                 embed=None,
-                view=None,
+                view=BackToPoulailler(self.fermier_id),
                 content=res
             )
 
@@ -499,6 +548,29 @@ def create_embed(title, poule, fermier_id, poule_place=None, avatar=None, path=N
     return embed, file
 
 
+def embed_for_stats(fermier_id, avatar):
+    fermier_lvl = get_fermier_lvl(cur, fermier_id)
+    poulailler_data = get_poulailler_data(cur, fermier_id)
+    embed = discord.Embed(title="Stats du poulailler")
+    embed.add_field(name="Nombre de poules", value=str(poulailler_data['amount'])+"🐔")
+    embed.add_field(name="Valeur des poules", value=str(poulailler_data['value'])+"🥚")
+    embed.add_field(name="Production des poules sur 24 heures", value=str(poulailler_data['production']*24)+"🥚")
+    embed.add_field(name="Prix de l'entretien des poules sur 24 heures", value=str(round(24 * fermier_lvl * (int(fermier_lvl/8)**2)))+"🥚")
+    embed.add_field(name="Poules familialles", value=poulailler_data['family_amount'])
+    print(poulailler_data["families"])
+    families = {}
+    for el in poulailler_data['families']:
+        if not el in families.keys():
+            families[el] = 1
+        else:
+            families[el] += 1
+    families_string = ""
+    for el in families.items():
+        families_string += f"{el[0][0]}: {el[1]}\n"
+    embed.add_field(name = "Compte des familles", value=families_string)
+    embed.set_thumbnail(url=avatar)
+    return embed
+
 class Lvl_Up_Button(discord.ui.View):
     """
     to lv u^
@@ -538,6 +610,51 @@ class Lvl_Up_Button(discord.ui.View):
             embed=embed,
             view=None,
         )
+
+class Lvl_Up_Poule_Button(discord.ui.View):
+    """
+    to lv u^
+    """
+
+    def __init__(self, fermier_id, avatar, poule):
+        super().__init__()
+        self.fermier_id = fermier_id
+        self.avatar = avatar
+        self.poule = poule
+
+    @discord.ui.button(label="Améliorer la poule", style=discord.ButtonStyle.gray)
+    async def lvl_up_poule(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        if self.fermier_id != interaction.user.id:
+            return
+        await interaction.response.defer()
+        production = self.poule['production']
+        if get_fermier_oeufs(cur, self.fermier_id) < production*115:
+            return await interaction.followup.edit_message(
+                message_id=interaction.message.id,
+                content="T'as pas assez d'argent boursemolle",
+                embed=None,
+                attachments=[],
+                view=BackToPoulailler(self.fermier_id),
+            )
+        else:
+            lose_money(cur, con, self.fermier_id, production*115)
+            augmente_production_poule(cur, con, self.poule["trade_id"])
+
+            embed = discord.Embed(
+                title=f"Poule améliorée"
+            )
+            embed.add_field(
+                name="Nouvelle production:",
+                value=f"**{self.poule['production']+1}**",
+            )
+            await interaction.followup.edit_message(
+                message_id=interaction.message.id,
+                embed=embed,
+                attachments=[],
+                view=BackToPoulailler(self.fermier_id),
+            )
 
 
 class BackToPoulailler(discord.ui.View):
@@ -615,6 +732,11 @@ class Poulailler_Visite(discord.ui.View):
             view=self,
         )
 
+    @discord.ui.button(label=f"Statistiques", style=discord.ButtonStyle.green)
+    async def stats(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        await interaction.response.defer()
+        embed = embed_for_stats(self.fermier_id, self.avatar)
+        await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed, view=BackToPoulailler(self.fermier_id), attachments=[])
 
 class PariSelect(discord.ui.Select):
     """
@@ -634,8 +756,6 @@ class PariSelect(discord.ui.Select):
                 label=poule['poule_name'], description=f"prix: {poule['price']}; prod: {poule['production']}")
                 for poule in user_poulailler_clear
         ]
-        print(user_poulailler)
-        print(options)
         text = ['Choisis la poule que tu paries', 'choisis la poule que tu veux gagner']
         super().__init__(placeholder=text[len(bet_poule)],
                          min_values=1, max_values=1, options=options)

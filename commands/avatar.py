@@ -43,7 +43,7 @@ class guildSelect(discord.ui.Select):
                          min_values=1, max_values=1, options=options)
 
     async def callback(self, interaction: discord.Interaction):
-        guild = bot.get_guild(769911179547246592)
+        guild = bot.get_guild(interaction.guild.id)
         x = await guild.fetch_member(self.values[0])
         image = str(x.avatar)
         embed = discord.Embed(color = discord.Colour.dark_magenta(), title= x.name).set_image(url=image)
