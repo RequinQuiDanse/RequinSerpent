@@ -245,13 +245,13 @@ def buy_poule(cur, con, fermier_id, poule, now, path):
         return "T'as pas assez d'argent boursemolle"
     count = do_sql(cur, f"SELECT COUNT(*) FROM poulaillers WHERE poule_name = '{poule['poule_name']}' AND fermier_id = {fermier_id}").fetchone()[0]
     if count >= 1:
-        return "T'as déjà cette poule, changes un peu"
+        return "T'as déjà cette poule fermier sagouin"
     fermier_tier = round((get_fermier_lvl(cur, fermier_id)/10)+0.5)
     if fermier_tier < poule_tier:
         return "Grind niveau 10 avant de prendre ce type de poule mon coco"
     res = add_poule(cur, con, poule['poule_name'], fermier_id, now, path, poule['production'])
     if type(res) == str:
-        return "Pas la place dans ton poulailler"
+        return "Pas la place dans ton poulailler maroufle"
 
     do_sql(cur, f"UPDATE fermiers SET oeufs = oeufs - {poule['price']} WHERE fermier_id = {fermier_id}")
     con.commit()

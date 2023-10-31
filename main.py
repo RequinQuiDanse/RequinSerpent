@@ -7,6 +7,7 @@ import asyncio
 import glob
 import random
 import os
+import csv
 
 # import commands.playlist
 import commands.crack
@@ -43,8 +44,19 @@ if os.name =="nt":
 
 @bot.event
 async def on_ready():
-    #print("Sync")
+
+    # channel =  bot.get_channel(781952289430306846)
+    # messages = []
+    # async for msgs in channel.history(limit=100, oldest_first = True):
+    #     try:
+    #         print(msgs)
+    #         messages.append((msgs.author.name, msgs.content))
+    #     except:
+    #         pass
+
+    
     await bot.tree.sync() # guild = discord.Object(id=769911179547246592) else None
+    print("Sync")
 
     # await bot.change_presence(status=discord.Status.invisible)
     await asyncio.sleep(5)
