@@ -16,7 +16,7 @@ async def poulailler(interaction: discord.Interaction, nom_du_fermier: str = Non
     """
     cmd to show your poulailler
     """
-    now = datetime.now()
+    now = datetime.now().replace(minute=0, second=0, microsecond=0)
     await interaction.response.defer()
     if nom_du_fermier != None:
         # fermier_id = int(fermier_id.replace("<@", "").replace(">", ""))
@@ -127,14 +127,14 @@ async def tirage(interaction: discord.Interaction):
     """
     cmd to daily chance to get a poule
     """
-    now = datetime.now()
+    now = datetime.now().replace(minute=0, second=0, microsecond=0)
     await interaction.response.defer()
     fermier_id = interaction.user.id
     fermier_exist(cur, con, fermier_id, now)
 
     last_tirage = get_last_tirage(cur, fermier_id)
     if last_tirage != "0":
-        last_tirage = datetime.strptime(last_tirage, "%Y-%m-%d %H:%M:%S.%f")
+        last_tirage = datetime.strptime(last_tirage, "%Y-%m-%d %H:%M:%S")
         diff = (now - last_tirage).total_seconds()
         if diff < 86400:
             return await interaction.followup.send(
@@ -160,16 +160,16 @@ async def magazin(interaction: discord.Interaction):
     """
     cmd to daily market
     """
-    now = datetime.now()
+    now = datetime.now().replace(minute=0, second=0, microsecond=0)
     await interaction.response.defer()
     fermier_id = interaction.user.id
     fermier_exist(cur, con, fermier_id, now)
 
     last_market = get_last_market(cur)
-    last_market = datetime.strptime(last_market, "%Y-%m-%d %H:%M:%S.%f")
-    diff = (now - last_market).total_seconds()
+    last_market = datetime.strptime(last_market, "%Y-%m-%d %H:%M:%S")
+    diff = (now - last_market).days
 
-    if diff > 86400:
+    if diff >= 1:
         register_market(cur, con, now)
 
     market = get_market(cur)
@@ -243,11 +243,10 @@ class Poulailler_Buttons(discord.ui.View):
 
         poule = self.poulailler[self.poule_place]
         path = poule["path"]
-        new_path = path[:-4:]+"_edit"+str(randint(0, 1000))+path[-4::]
         await interaction.followup.edit_message(
             message_id=interaction.message.id,
-            view=photoButton(path=path, new_path=new_path, poule=poule,
-                             fermier_id=self.fermier_id, cur=cur, con=con, trade_id=poule['trade_id']),
+            view=photoButton(path=path, poule=poule,
+                             fermier_id=self.fermier_id, cur=cur, con=con, trade_id=poule['trade_id'], poule_place = self.poule_place),
         )
 
     @discord.ui.button(label="Vendre", style=discord.ButtonStyle.danger)
@@ -288,7 +287,7 @@ class Poulailler_Buttons(discord.ui.View):
         if self.fermier_id != interaction.user.id:
             return
         await interaction.response.defer()
-        now = datetime.now()
+        now = datetime.now().replace(minute=0, second=0, microsecond=0)
 
         oeufs_produits, taxes = get_last_harvest(
             cur, con, self.fermier_id, now)
@@ -305,21 +304,6 @@ class Poulailler_Buttons(discord.ui.View):
                                                 view=None, attachments=[]
                                                 )
 
-    @discord.ui.button(label=f"Monter de niveau", style=discord.ButtonStyle.green)
-    async def lvl_upp(self, interaction: discord.Interaction, buttons: discord.ui.Button):
-        if self.fermier_id != interaction.user.id:
-            return
-        await interaction.response.defer()
-        fermier_lvl = get_fermier_lvl(cur, self.fermier_id)
-        embed = discord.Embed(title="Monter de niveau")
-        embed.add_field(name="Prix", value=str(fermier_lvl*100)+"🥚")
-        embed.add_field(name="Avantage",
-                        value="Augmente de 1 la taille de ton poulailler")
-        embed.add_field(name="Désavantage:",
-                        value=f"Prix entretien sur 24h:\nMaintenant: {round(24 * fermier_lvl * (int(fermier_lvl/8)**2))}🥚\nAprès:{round(24 * (fermier_lvl+1) * (int((fermier_lvl+1)/8)**2))}🥚")
-        await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed, view=Lvl_Up_Button(fermier_lvl, self.fermier_id, self.avatar), attachments=[]
-                                                )
-
     @discord.ui.button(label="Améliorer la production de la poule", style=discord.ButtonStyle.green)
     async def upgrade(self, interaction: discord.Interaction, buttons: discord.ui.Button):
         if self.fermier_id != interaction.user.id:
@@ -333,6 +317,21 @@ class Poulailler_Buttons(discord.ui.View):
         embed.add_field(name="Avantage",
                         value="Améliore définitivement de 1 la production de ta poule")
         await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed, view=Lvl_Up_Poule_Button(self.fermier_id, self.avatar, poule, self.poule_place), attachments=[]
+                                                )
+        
+    @discord.ui.button(label=f"Monter de niveau", style=discord.ButtonStyle.red)
+    async def lvl_upp(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        if self.fermier_id != interaction.user.id:
+            return
+        await interaction.response.defer()
+        fermier_lvl = get_fermier_lvl(cur, self.fermier_id)
+        embed = discord.Embed(title="Monter de niveau")
+        embed.add_field(name="Prix", value=str(fermier_lvl*100)+"🥚")
+        embed.add_field(name="Avantage",
+                        value="Augmente de 1 la taille de ton poulailler")
+        embed.add_field(name="Désavantage:",
+                        value=f"Prix entretien sur 24h:\nMaintenant: {round(24 * fermier_lvl * (int(fermier_lvl/8)**2))}🥚\nAprès:{round(24 * (fermier_lvl+1) * (int((fermier_lvl+1)/8)**2))}🥚")
+        await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed, view=Lvl_Up_Button(fermier_lvl, self.fermier_id, self.avatar, self.poule_place), attachments=[]
                                                 )
 
     @discord.ui.button(label=f"Statistiques", style=discord.ButtonStyle.green)
@@ -352,13 +351,13 @@ class Poulailler_Buttons(discord.ui.View):
 async def parier(interaction: discord.Interaction, adversaire: str):
     """"""
     await interaction.response.defer()
-    now = datetime.now()
+    now = datetime.now().replace(minute=0, second=0, microsecond=0)
     fermier_id = interaction.user.id
     fermier_exist(cur, con, fermier_id, now)
 
     last_parie = get_last_pari(cur, fermier_id)
     if last_parie != "0":
-        last_parie = datetime.strptime(last_parie, "%Y-%m-%d %H:%M:%S.%f")
+        last_parie = datetime.strptime(last_parie, "%Y-%m-%d %H:%M:%S")
         diff = (now - last_parie).total_seconds()
         if diff < 86400:
             return await interaction.followup.send(
@@ -424,7 +423,7 @@ class Daily_Button(discord.ui.View):
         if self.fermier_id != interaction.user.id:
             return
         await interaction.response.defer()
-        now = datetime.now()
+        now = datetime.now().replace(minute=0, second=0, microsecond=0)
         res = add_poule(cur, con, self.poule["poule_name"], self.fermier_id,
                         now, self.poule["path"], self.poule["production"])
         if type(res) == str:
@@ -467,7 +466,7 @@ class Market_Buttons(discord.ui.View):
             return
         await interaction.response.defer()
         poule = self.market[self.poule_place]
-        now = datetime.now()
+        now = datetime.now().replace(minute=0, second=0, microsecond=0)
         res = buy_poule(cur, con, self.fermier_id, poule, now, poule['path'])
         if type(res) == str:
             return await interaction.followup.edit_message(
@@ -570,9 +569,10 @@ def embed_for_stats(fermier_id, avatar):
                     value=str(poulailler_data['production']*24)+"🥚")
     embed.add_field(name="Prix de l'entretien des poules sur 24 heures", value=str(
         round(24 * fermier_lvl * (int(fermier_lvl/8)**2)))+"🥚")
+    embed.add_field(name="Pourcentage de revenus", value=str(
+        round((1-(24 * fermier_lvl * (int(fermier_lvl/8)**2)/(poulailler_data ['production']*24)))*100))+"%")
     embed.add_field(name="Poules familialles",
                     value=poulailler_data['family_amount'])
-    print(poulailler_data["families"])
     families = {}
     for el in poulailler_data['families']:
         if not el in families.keys():
@@ -592,11 +592,12 @@ class Lvl_Up_Button(discord.ui.View):
     to lv u^
     """
 
-    def __init__(self, fermier_lvl, fermier_id, avatar):
+    def __init__(self, fermier_lvl, fermier_id, avatar, poule_place=0):
         super().__init__()
         self.fermier_lvl = fermier_lvl
         self.fermier_id = fermier_id
         self.avatar = avatar
+        self.poule_place = poule_place
 
     @discord.ui.button(label="Monter de niveau", style=discord.ButtonStyle.gray)
     async def lvl_up(
@@ -624,7 +625,7 @@ class Lvl_Up_Button(discord.ui.View):
             message_id=interaction.message.id,
             attachments=[],
             embed=embed,
-            view=None,
+            view=BackToPoulailler(self.fermier_id, self.poule_place),
         )
 
 
@@ -822,8 +823,8 @@ class AcceptPari(discord.ui.View):
         if interaction.user.id != self.adversaires[1].id:
             return
 
-        register_pari(cur, con, self.adversaires[0].id, datetime.now())
-        register_pari(cur, con, self.adversaires[1].id, datetime.now())
+        register_pari(cur, con, self.adversaires[0].id, datetime.now().replace(minute=0, second=0, microsecond=0))
+        register_pari(cur, con, self.adversaires[1].id, datetime.now().replace(minute=0, second=0, microsecond=0))
         plateau = f"**🔴 {self.adversaires[0].name} VERSUS {self.adversaires[1].name} 🟡**\n\n"
         plateau += f"\t{puissance4.LETTERS}\n\t{puissance4.BLACK_CASE*7}\n\t{puissance4.BLACK_CASE*7}\n\t{puissance4.BLACK_CASE*7}\n\t{puissance4.BLACK_CASE*7}\n\t{puissance4.BLACK_CASE*7}\n\t{puissance4.BLACK_CASE*7}"
 

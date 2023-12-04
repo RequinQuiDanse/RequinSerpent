@@ -102,6 +102,7 @@ class Musique:
         )
 
         while self.voice.is_playing():  # Attend la fin de la musique
+            print('IT IS PLAYING')
             await asyncio.sleep(1)
         self.voice.stop()  # arrête de chanter # change le statut du bot
 
@@ -283,7 +284,7 @@ class playlistSelectView(discord.ui.View):
                     )
                 )
             except:
-                print("Trop de playlists et pas assez de boutons je crois")
+                print("Trop de playlists et pas assez de boutons imo")
 
     async def interaction_check(self, interaction=discord.Interaction):
         await music_class.boucle_musique(

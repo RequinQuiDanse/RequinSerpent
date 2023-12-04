@@ -127,10 +127,10 @@ class Power4_Buttons(discord.ui.View):
             if type(self.poule_bet) == list:
                 if self.tour % 2 == 0:
                     main_commands.sell_poule(main_commands.cur, main_commands.con, loser_id, self.poule_bet[0])
-                    main_commands.add_poule_no_verif(main_commands.cur, main_commands.con, winner_id, self.poule_bet[0], main_commands.datetime.now())
+                    main_commands.add_poule_no_verif(main_commands.cur, main_commands.con, winner_id, self.poule_bet[0], main_commands.datetime.now().replace(minute=0, second=0, microsecond=0))
                 else:
                     main_commands.sell_poule(main_commands.cur, main_commands.con, loser_id, self.poule_bet[1])
-                    main_commands.add_poule_no_verif(main_commands.cur, main_commands.con, winner_id, self.poule_bet[1], main_commands.datetime.now())
+                    main_commands.add_poule_no_verif(main_commands.cur, main_commands.con, winner_id, self.poule_bet[1], main_commands.datetime.now().replace(minute=0, second=0, microsecond=0))
 
             elif self.poule_bet == "tirage":
                 poule = main_commands.get_random_poule(main_commands.cur, winner_id)
@@ -159,10 +159,10 @@ class Power4_Buttons(discord.ui.View):
         if type(self.poule_bet) == list:
             if self.tour % 2 == 0:
                 main_commands.sell_poule(main_commands.cur, main_commands.con, self.user_id, self.poule_bet[0])
-                main_commands.add_poule_no_verif(main_commands.cur, main_commands.con, self.adversaire_id, self.poule_bet[0], main_commands.datetime.now())
+                main_commands.add_poule_no_verif(main_commands.cur, main_commands.con, self.adversaire_id, self.poule_bet[0], main_commands.datetime.now().replace(minute=0, second=0, microsecond=0))
             else:
                 main_commands.sell_poule(main_commands.cur, main_commands.con, self.adversaire_id, self.poule_bet[1])
-                main_commands.add_poule_no_verif(main_commands.cur, main_commands.con, self.user_id, self.poule_bet[1], main_commands.datetime.now())
+                main_commands.add_poule_no_verif(main_commands.cur, main_commands.con, self.user_id, self.poule_bet[1], main_commands.datetime.now().replace(minute=0, second=0, microsecond=0))
 
     def verif(self):
         # Vérifie toutes les combinaisons de 4 pions sur le tableau
