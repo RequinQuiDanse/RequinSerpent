@@ -9,7 +9,7 @@ import random
 import os
 import csv
 
-# import commands.playlist
+import commands.playlist
 import commands.crack
 import commands.reddit
 import commands.avatar
@@ -25,7 +25,6 @@ import commands.img_to_txt
 # import commands.meteo
 import commands.rotate_picture
 import commands.ultimate_team
-import commands.gpt
 import commands.puissance4
 import commands.rap_citation
 import commands.joueurs_commentaires
@@ -55,7 +54,7 @@ async def on_ready():
     #         pass
 
     
-    await bot.tree.sync() # guild = discord.Object(id=769911179547246592) else None
+    await bot.tree.sync(guild=discord.Object(id=716004062679531580)) # guild = discord.Object(id=769911179547246592) else None
     print("Sync")
 
     # await bot.change_presence(status=discord.Status.invisible)
