@@ -14,3 +14,4 @@ ia_img
 commands/gpt.bat
 *.csv
 playlist/code_secret_client.json
+out_cmds

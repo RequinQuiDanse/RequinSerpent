@@ -472,6 +472,7 @@ class Market_Buttons(discord.ui.View):
             return await interaction.followup.edit_message(
                 message_id=interaction.message.id,
                 attachments=[],
+                view=None,
                 embed=None,
                 content=res
             )

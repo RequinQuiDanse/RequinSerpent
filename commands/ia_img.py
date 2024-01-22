@@ -9,6 +9,7 @@ import datetime
 @bot.tree.command(guild = discord.Object(id=769911179547246592), description="Je n'ai que 4giga de vram, donc ~~3min/photo")
 async def ia_img(interaction: discord.Interaction, sentence:str, img:discord.Attachment = None):
     if torch.cuda.is_available():
+        sentence = sentence.replace('"',"").replace("{","").replace("}","").replace(":","").replace(",","")
         _time = time.time()
         minute = datetime.datetime.now().minute+3 if len(str(datetime.datetime.now().minute+3))==2 else "0" + str(datetime.datetime.now().minute+3)
         await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.competing, name=f"Hot {datetime.datetime.now().hour}h {minute}"))
@@ -34,7 +35,8 @@ async def ia_img(interaction: discord.Interaction, sentence:str, img:discord.Att
             _seed = "00000" if str(_seed).replace(".","") == "00001" else str(round(float(_seed) - 0.0001,5)).replace(".","")
             img = [discord.File(fr'csv_files/ia_img\{sentence[:133].replace(" ","_")}\seed_{seed}_{_seed}.png')]
             await interaction.followup.send(content = f"{sentence}, {round((int(time.time() - _time)/60),2)}min", files=img)
-
+    else:
+        await interaction.response.send_message("CG indispo :§", ephemeral=True)
 '''
 import io
 import os

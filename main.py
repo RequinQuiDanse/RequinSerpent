@@ -13,7 +13,7 @@ import commands.playlist
 import commands.crack
 import commands.reddit
 import commands.avatar
-import commands.translate
+# import commands.translate
 import commands.chimp_test
 import commands.flag
 import commands.sendcode
@@ -29,6 +29,8 @@ import commands.puissance4
 import commands.rap_citation
 import commands.joueurs_commentaires
 import commands.general_quizz
+import commands.llama
+# import commands.ia_img
 from commands.poulytopia import main_commands
 if os.name =="nt":
     # import commands.ia_img
@@ -40,6 +42,7 @@ if os.name =="nt":
     import commands.not_commands.vids
     import commands.not_commands.supp
     import commands.not_commands.git
+
 
 @bot.event
 async def on_ready():
@@ -53,25 +56,27 @@ async def on_ready():
     #     except:
     #         pass
 
-    
-    await bot.tree.sync(guild=discord.Object(id=716004062679531580)) # guild = discord.Object(id=769911179547246592) else None
+    await bot.tree.sync(guild=discord.Object(id=769911179547246592)) # guild = discord.Object(id=769911179547246592) else None
     print("Sync")
 
-    # await bot.change_presence(status=discord.Status.invisible)
-    await asyncio.sleep(5)
-    commands = []
-    for x in glob.glob("commands/*.py"):
-        commands.append(x.replace("\\","/"))
-    while True:
-        ma_guild = bot.get_guild(769911179547246592)
-        try:
-            if str(ma_guild.me.activity.type) != "ActivityType.listening" :
+    online = False
+    if online == True:
+        await bot.change_presence(status=discord.Status.invisible)
+    else:
+        await asyncio.sleep(5)
+        commands = []
+        for x in glob.glob("commands/*.py"):
+            commands.append(x.replace("\\","/"))
+        while True:
+            ma_guild = bot.get_guild(769911179547246592)
+            try:
+                if str(ma_guild.me.activity.type) != "ActivityType.listening" :
+                    activ = '/' + str(random.choice(commands)).replace("commands/","").replace(".py","")
+                    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.competing, name=activ))
+            except:
                 activ = '/' + str(random.choice(commands)).replace("commands/","").replace(".py","")
                 await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.competing, name=activ))
-        except:
-            activ = '/' + str(random.choice(commands)).replace("commands/","").replace(".py","")
-            await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.competing, name=activ))
-        await asyncio.sleep(150)
+            await asyncio.sleep(150)
 
 
 with open("token.txt") as f:

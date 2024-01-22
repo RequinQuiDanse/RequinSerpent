@@ -140,11 +140,14 @@ def get_poulailler_data(cur, fermier_id):
                         oeufs_produits_2 += int(production)*2
                     else:
                         oeufs_produits_2 += int(production)
-
+    try:
+        production_tier_1 = int(do_sql(cur, f"SELECT SUM(poules.production) FROM poules JOIN poulaillers ON poules.poule_name = poulaillers.poule_name WHERE poules.tier = 1 AND fermier_id = {fermier_id}").fetchone()[0])
+    except:
+        production_tier_1 = 0
     res = {
         "amount":do_sql(cur, f"SELECT COUNT(*) FROM poulaillers WHERE fermier_id = {fermier_id}").fetchone()[0],
         "value":do_sql(cur, f"SELECT SUM(poules.price) FROM poules JOIN poulaillers ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id}").fetchone()[0],
-        "production":int(do_sql(cur, f"SELECT SUM(poules.production) FROM poules JOIN poulaillers ON poules.poule_name = poulaillers.poule_name WHERE poules.tier = 1 AND fermier_id = {fermier_id}").fetchone()[0]) + oeufs_produits_2,
+        "production":production_tier_1 + oeufs_produits_2,
         "family_amount":do_sql(cur, f"SELECT COUNT(poules.family) FROM poules JOIN poulaillers ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id}").fetchone()[0],
         "families":do_sql(cur, f"SELECT poules.family FROM poules JOIN poulaillers ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} AND family not NULL").fetchall(),
     }
@@ -173,23 +176,36 @@ def get_my_money(cur, fermier_id):
     return res
 
 def get_last_harvest(cur, con, fermier_id, now):
-    res = do_sql(cur, f"SELECT poules.production, poulaillers.last_harvest, poulaillers.poule_name FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} AND poules.tier = 1 ORDER BY last_harvest").fetchall()
 
-    fermier_lvl = get_fermier_lvl(cur, fermier_id)
+    # taxes
+    res = do_sql(cur, f"SELECT poules.production, poulaillers.last_harvest, poulaillers.poule_name FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} ORDER BY last_harvest").fetchall()
     last_time_taxes = res[0][1]
     last_time_taxes = datetime.strptime(last_time_taxes, "%Y-%m-%d %H:%M:%S")
     diff = (now - last_time_taxes).total_seconds()
     hours = diff//3600
     taxes = round(hours * fermier_lvl * (fermier_lvl/8)**2)
+    # poules tier 1
+    try:
+        res = do_sql(cur, f"SELECT poules.production, poulaillers.last_harvest, poulaillers.poule_name FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} AND poules.tier = 1 ORDER BY last_harvest").fetchall()
 
-    oeufs_produits_1 = 0
-    for production, last_harvest, poule_name in res:
-        last_harvest = datetime.strptime(last_harvest, "%Y-%m-%d %H:%M:%S")
-        diff = (now - last_harvest).total_seconds()
+        fermier_lvl = get_fermier_lvl(cur, fermier_id)
+        last_time_taxes = res[0][1]
+        last_time_taxes = datetime.strptime(last_time_taxes, "%Y-%m-%d %H:%M:%S")
+        diff = (now - last_time_taxes).total_seconds()
         hours = diff//3600
-        oeufs_produits_1 += int(production * hours)
-        do_sql(cur, f"UPDATE poulaillers SET last_harvest = '{now}' WHERE fermier_id = {fermier_id} AND poule_name='{poule_name}'")
 
+        oeufs_produits_1 = 0
+        for production, last_harvest, poule_name in res:
+            last_harvest = datetime.strptime(last_harvest, "%Y-%m-%d %H:%M:%S")
+            diff = (now - last_harvest).total_seconds()
+            hours = diff//3600
+            oeufs_produits_1 += int(production * hours)
+            do_sql(cur, f"UPDATE poulaillers SET last_harvest = '{now}' WHERE fermier_id = {fermier_id} AND poule_name='{poule_name}'")
+    except:
+
+        oeufs_produits_1 = 0
+    
+    # poules tier 2
     res2 = do_sql(cur, f"SELECT poules.family FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} AND poules.tier = 2").fetchall()
     oeufs_produits_2 = 0
     if res2 != []:
