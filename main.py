@@ -59,8 +59,8 @@ async def on_ready():
     await bot.tree.sync(guild=discord.Object(id=769911179547246592)) # guild = discord.Object(id=769911179547246592) else None
     print("Sync")
 
-    online = False
-    if online == True:
+    online = True
+    if online == False:
         await bot.change_presence(status=discord.Status.invisible)
     else:
         await asyncio.sleep(5)

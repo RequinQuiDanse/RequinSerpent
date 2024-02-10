@@ -16,7 +16,7 @@ def create_connection(path):
 
 def do_sql(cur, sql):
     res = None
-    print(">>>"+sql)
+    # print(">>>"+sql)
     try:
         res = cur.execute(sql)
     except Error as e:
@@ -126,6 +126,7 @@ def register_pari(cur, con, fermier_id, time):
 def get_poulailler_data(cur, fermier_id):
     production_tier2 = do_sql(cur, f"SELECT poules.family FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} AND poules.tier = 2").fetchall()
     oeufs_produits_2 = 0
+    prod_per_family = {}
     if production_tier2 != []:
         deja_vu = []
         for family in production_tier2:
@@ -133,15 +134,20 @@ def get_poulailler_data(cur, fermier_id):
             if family not in deja_vu:
                 deja_vu.append(family)
                 family_poules = 0
-                res = do_sql(cur, f"SELECT poules.production FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} AND poules.family = '{family}'").fetchall()
-                for production, in res:
+                res = do_sql(cur, f"SELECT poulaillers.production FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} AND poules.family = '{family}'").fetchall()
+                production = 0
+                for prod, in res:
                     family_poules+=1
-                    if family_poules >= 5:
-                        oeufs_produits_2 += int(production)*2
-                    else:
-                        oeufs_produits_2 += int(production)
+                    production += prod
+                if family_poules >= 5:
+                    oeufs_produits_2 += int(production)*2
+                    prod_per_family[family] = int(production)*2
+                else:
+                    oeufs_produits_2 += int(production)
+                    prod_per_family[family] = int(production)
+                        
     try:
-        production_tier_1 = int(do_sql(cur, f"SELECT SUM(poules.production) FROM poules JOIN poulaillers ON poules.poule_name = poulaillers.poule_name WHERE poules.tier = 1 AND fermier_id = {fermier_id}").fetchone()[0])
+        production_tier_1 = int(do_sql(cur, f"SELECT SUM(poulaillers.production) FROM poules JOIN poulaillers ON poules.poule_name = poulaillers.poule_name WHERE poules.tier = 1 AND fermier_id = {fermier_id}").fetchone()[0])
     except:
         production_tier_1 = 0
     res = {
@@ -150,6 +156,7 @@ def get_poulailler_data(cur, fermier_id):
         "production":production_tier_1 + oeufs_produits_2,
         "family_amount":do_sql(cur, f"SELECT COUNT(poules.family) FROM poules JOIN poulaillers ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id}").fetchone()[0],
         "families":do_sql(cur, f"SELECT poules.family FROM poules JOIN poulaillers ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} AND family not NULL").fetchall(),
+        "prod_per_families": prod_per_family
     }
     return res
 
@@ -177,18 +184,21 @@ def get_my_money(cur, fermier_id):
 
 def get_last_harvest(cur, con, fermier_id, now):
 
+    fermier_lvl = get_fermier_lvl(cur, fermier_id)
+        
     # taxes
-    res = do_sql(cur, f"SELECT poules.production, poulaillers.last_harvest, poulaillers.poule_name FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} ORDER BY last_harvest").fetchall()
+    res = do_sql(cur, f"SELECT poulaillers.production, poulaillers.last_harvest, poulaillers.poule_name FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} ORDER BY last_harvest").fetchall()
     last_time_taxes = res[0][1]
     last_time_taxes = datetime.strptime(last_time_taxes, "%Y-%m-%d %H:%M:%S")
     diff = (now - last_time_taxes).total_seconds()
     hours = diff//3600
+    # round(hours * fermier_lvl * (int(fermier_lvl/8)**2))
+    # round(hours * fermier_lvl * (fermier_lvl/8)**2)
     taxes = round(hours * fermier_lvl * (fermier_lvl/8)**2)
     # poules tier 1
     try:
-        res = do_sql(cur, f"SELECT poules.production, poulaillers.last_harvest, poulaillers.poule_name FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} AND poules.tier = 1 ORDER BY last_harvest").fetchall()
+        res = do_sql(cur, f"SELECT poulaillers.production, poulaillers.last_harvest, poulaillers.poule_name FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} AND poules.tier = 1 ORDER BY last_harvest").fetchall()
 
-        fermier_lvl = get_fermier_lvl(cur, fermier_id)
         last_time_taxes = res[0][1]
         last_time_taxes = datetime.strptime(last_time_taxes, "%Y-%m-%d %H:%M:%S")
         diff = (now - last_time_taxes).total_seconds()
@@ -215,23 +225,28 @@ def get_last_harvest(cur, con, fermier_id, now):
             if family not in deja_vu:
                 deja_vu.append(family)
                 family_poules = 0
-                res = do_sql(cur, f"SELECT poules.production, poulaillers.last_harvest, poulaillers.poule_name FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} AND poules.family = '{family}'").fetchall()
+                res = do_sql(cur, f"SELECT poulaillers.production, poulaillers.last_harvest, poulaillers.poule_name FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} AND poules.family = '{family}'").fetchall()
+                family_prod = 0
                 for production, last_harvest, poule_name in res:
                     family_poules+=1
                     last_harvest = datetime.strptime(last_harvest, "%Y-%m-%d %H:%M:%S")
                     diff = (now - last_harvest).total_seconds()
                     hours = diff//3600
-                    if family_poules >= 5:
-                        oeufs_produits_2 += int(production * hours)*2
-                    else:
-                        oeufs_produits_2 += int(production * hours)
+                    family_prod += int(production * hours)
                     do_sql(cur, f"UPDATE poulaillers SET last_harvest = '{now}' WHERE fermier_id = {fermier_id} AND poule_name='{poule_name}'")
+                if family_poules >= 5:
+                    oeufs_produits_2 += family_prod*2
+                else:
+                    oeufs_produits_2 += family_prod
     
     oeufs_produits = round(oeufs_produits_1 + oeufs_produits_2)
-    gain_money(cur, con, fermier_id, round(oeufs_produits))
+    print(hours, "hours sqlcmd 240")
+    print(oeufs_produits, "OEUFSD PRODUITS 240")
+    print(taxes, "taxzes 240")
+    gain_money(cur, con, fermier_id, oeufs_produits)
     lose_money(cur, con, fermier_id, taxes)
     con.commit()
-    return oeufs_produits, taxes
+    return oeufs_produits, taxes, hours
 
 
 def get_last_market(cur):
@@ -246,9 +261,13 @@ def register_market(cur, con, time):
     time = time.replace(hour=18, minute=0, second=0, microsecond=0)
     
     do_sql(cur, "DELETE FROM market")
-    poules = do_sql(cur, f"SELECT * FROM poules WHERE tier = 1 ORDER BY RANDOM() LIMIT 4;").fetchall()
+    temp_poules = do_sql(cur, f"SELECT * FROM poules WHERE tier = 1 ORDER BY RANDOM() LIMIT 8;").fetchall()
+    poules = []
+    i=0
+    while len(poules)<4:
+        poules.append(temp_poules[i])
+        i+=1
     for poule in poules:
-        print(poule)
         do_sql(cur, f"INSERT INTO market VALUES ('{poule[0]}','{time}')")
     poule_2 = do_sql(cur, f"SELECT * FROM poules ORDER BY RANDOM() LIMIT 1;").fetchall()[0][0]
     do_sql(cur, f"INSERT INTO market VALUES ('{poule_2}','{time}')")
@@ -338,6 +357,6 @@ def get_fermiers_data(cur):
         })
     return res_
 
-def augmente_production_poule(cur, con, trade_id):
-    do_sql(cur, f"UPDATE poulaillers SET production = production + 1 WHERE trade_id = {trade_id}")
+def augmente_production_poule(cur, con, trade_id, level):
+    do_sql(cur, f"UPDATE poulaillers SET production = production + {level} WHERE trade_id = {trade_id}")
     con.commit()

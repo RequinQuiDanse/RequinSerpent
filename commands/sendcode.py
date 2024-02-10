@@ -32,7 +32,7 @@ class sendCodeSelect(discord.ui.Select):
         ]
         super().__init__(placeholder="Quel code veux tu?", min_values=1, max_values=1, options = options)
         for cmd in glob.glob("commands/*.py"):
-            cmd = cmd.replace("commands/","").replace("\\","/")
+            cmd = cmd.replace("\\","/").replace("commands/","")
             self.add_option(label = cmd, description= "⠀")
 
     async def callback(self, interaction: discord.Interaction):

@@ -287,9 +287,10 @@ class Poulailler_Buttons(discord.ui.View):
         if self.fermier_id != interaction.user.id:
             return
         await interaction.response.defer()
+        poulailler_data = get_poulailler_data(cur, self.fermier_id)
         now = datetime.now().replace(minute=0, second=0, microsecond=0)
 
-        oeufs_produits, taxes = get_last_harvest(
+        oeufs_produits, taxes, hours = get_last_harvest(
             cur, con, self.fermier_id, now)
 
         embed = discord.Embed(title=f"Résultat de la récolte d'oeufs")
@@ -299,6 +300,11 @@ class Poulailler_Buttons(discord.ui.View):
                         value=f"**{taxes}**🥚")
         embed.add_field(name="Nombre d'oeufs récupérés:",
                         value=f"**{round(oeufs_produits-taxes)}**🥚")
+        
+        family_prod_string = ""
+        for family, prod in poulailler_data['prod_per_families'].items():
+            family_prod_string += f"{family}: {round(prod*hours)}\n"
+        embed.add_field(name=f"Production d'🥚 par famille en {round(hours)} heures: ", value=family_prod_string)
         embed.set_footer(text="Le coût de l'entretien du poulailler dépend de la taille du poulailler.\n Pour plus de détail: y=⁅(𝑥/8)^2 𝑥⋅c⁆ avec x le niveau du poulailler et c le nb d'heures depuis dernier entretien")
         await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed,
                                                 view=None, attachments=[]
@@ -313,10 +319,10 @@ class Poulailler_Buttons(discord.ui.View):
         poule = self.poulailler[self.poule_place]
         production = poule["production"]
         embed = discord.Embed(title="Améliorer la production")
-        embed.add_field(name="Prix", value=str(production*115)+"🥚")
+        embed.add_field(name="Prix", value=str(production*115)+"🥚 (augmente avec les niveaux que tu veux)")
         embed.add_field(name="Avantage",
-                        value="Améliore définitivement de 1 la production de ta poule")
-        await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed, view=Lvl_Up_Poule_Button(self.fermier_id, self.avatar, poule, self.poule_place), attachments=[]
+                        value="Améliore définitivement la production de ta poule")
+        await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed, view=Upgrade_Poule_View(self.fermier_id, self.avatar, poule, self.poule_place), attachments=[]
                                                 )
         
     @discord.ui.button(label=f"Monter de niveau", style=discord.ButtonStyle.red)
@@ -387,14 +393,11 @@ async def poulaillers_classement(interaction: discord.Interaction):
 
     fermier_data = get_fermiers_data(cur)
     embed = discord.Embed(title="Classement des fermiers")
-    print(fermier_data)
     i = 1
     guild = bot.get_guild(interaction.guild.id)
-    print(guild)
     for fermier in fermier_data:
         try:
             user = guild.get_member(fermier['fermier_id'])
-            print(user)
             embed.add_field(
                 name=f"{i}. "+user.name, value=f"Niveau: {fermier['level']}, Oeufs: {fermier['oeufs']}")
             i += 1
@@ -446,6 +449,26 @@ class Daily_Button(discord.ui.View):
             view=None,
         )
 
+    @discord.ui.button(label="Vendre la poule", style=discord.ButtonStyle.green)
+    async def vendre_poule(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        if self.fermier_id != interaction.user.id:
+            return
+        await interaction.response.defer()
+
+        price = self.poule['price']
+        gain_money(cur, con, self.fermier_id, price)
+        embed, file = create_embed(
+            title=f"+{price} 🥚", poule=self.poule, avatar=interaction.user.avatar, fermier_id=self.fermier_id)
+        
+        await interaction.followup.edit_message(
+            message_id=interaction.message.id,
+            content=f"+{price}🥚 :)",
+            embed=None,
+            view=None,
+            attachments=[],
+        )
 
 class Market_Buttons(discord.ui.View):
     """
@@ -568,10 +591,13 @@ def embed_for_stats(fermier_id, avatar):
                     value=str(poulailler_data['value'])+"🥚")
     embed.add_field(name="Production des poules sur 24 heures",
                     value=str(poulailler_data['production']*24)+"🥚")
+    # round(24 * 28 * (int(28/8)**2)))
     embed.add_field(name="Prix de l'entretien des poules sur 24 heures", value=str(
-        round(24 * fermier_lvl * (int(fermier_lvl/8)**2)))+"🥚")
+        round(24 * fermier_lvl * (fermier_lvl/8)**2))+"🥚")
+    # 1 - (taxes / production)
+    # net * 100 / brut
     embed.add_field(name="Pourcentage de revenus", value=str(
-        round((1-(24 * fermier_lvl * (int(fermier_lvl/8)**2)/(poulailler_data ['production']*24)))*100))+"%")
+        round(round(1-(24 * fermier_lvl * (fermier_lvl/8)**2)/(poulailler_data ['production']*24), 3)*100, 1))+"%")
     embed.add_field(name="Poules familialles",
                     value=poulailler_data['family_amount'])
     families = {}
@@ -580,10 +606,15 @@ def embed_for_stats(fermier_id, avatar):
             families[el] = 1
         else:
             families[el] += 1
+        
     families_string = ""
     for el in families.items():
         families_string += f"{el[0][0]}: {el[1]}\n"
     embed.add_field(name="Compte des familles", value=families_string)
+    family_prod_string = ""
+    for family, prod in poulailler_data['prod_per_families'].items():
+        family_prod_string += f"{family}: {prod}\n"
+    embed.add_field(name="Production d'🥚 par famille et par heure: ", value=family_prod_string)
     embed.set_thumbnail(url=avatar)
     return embed
 
@@ -630,27 +661,78 @@ class Lvl_Up_Button(discord.ui.View):
         )
 
 
-class Lvl_Up_Poule_Button(discord.ui.View):
-    """
-    to lv u^
-    """
+# class Lvl_Up_Poule_Button(discord.ui.View):
+#     """
+#     to lv u^
+#     """
 
+#     def __init__(self, fermier_id, avatar, poule, poule_place):
+#         super().__init__()
+#         self.fermier_id = fermier_id
+#         self.avatar = avatar
+#         self.poule = poule
+#         self.poule_place = poule_place
+
+#     @discord.ui.button(label="Améliorer la poule", style=discord.ButtonStyle.gray)
+#     async def lvl_up_poule(
+#         self, interaction: discord.Interaction, button: discord.ui.Button
+#     ):
+#         if self.fermier_id != interaction.user.id:
+#             return
+#         await interaction.response.defer()
+#         production = self.poule['production']
+#         if get_fermier_oeufs(cur, self.fermier_id) < production*115:
+#             return await interaction.followup.edit_message(
+#                 message_id=interaction.message.id,
+#                 content="T'as pas assez d'argent boursemolle",
+#                 embed=None,
+#                 attachments=[],
+#                 view=BackToPoulailler(self.fermier_id, self.poule_place),
+#             )
+#         else:
+#             lose_money(cur, con, self.fermier_id, production*115)
+#             augmente_production_poule(cur, con, self.poule["trade_id"])
+
+#             embed = discord.Embed(
+#                 title=f"Poule améliorée"
+#             )
+#             embed.add_field(
+#                 name="Nouvelle production:",
+#                 value=f"**{self.poule['production']+1}**",
+#             )
+#             await interaction.followup.edit_message(
+#                 message_id=interaction.message.id,
+#                 embed=embed,
+#                 attachments=[],
+#                 view=BackToPoulailler(self.fermier_id, self.poule_place),
+#             )
+
+class Upgrade_Poule_Select(discord.ui.Select):
+    """
+    select with almost all my codes, for the user to select one. Once the user respond, the bot send the code on discord
+    """
     def __init__(self, fermier_id, avatar, poule, poule_place):
-        super().__init__()
         self.fermier_id = fermier_id
         self.avatar = avatar
         self.poule = poule
         self.poule_place = poule_place
+        super().__init__(placeholder="Combien de niveaux pour ta poule?", min_values=1, max_values=1, options = [])
+        for i in range(1,20):
+            self.add_option(label = i, description= "Prix: "+str(get_total_price_for_upgrade(i, poule['production']))+"🥚")
 
-    @discord.ui.button(label="Améliorer la poule", style=discord.ButtonStyle.gray)
-    async def lvl_up_poule(
-        self, interaction: discord.Interaction, button: discord.ui.Button
-    ):
+    async def callback(self, interaction: discord.Interaction):
         if self.fermier_id != interaction.user.id:
             return
-        await interaction.response.defer()
-        production = self.poule['production']
-        if get_fermier_oeufs(cur, self.fermier_id) < production*115:
+        asked_lvl = int(self.values[0])
+        await interaction.response.defer(ephemeral=True)
+        old_production = self.poule['production']
+        poulailler = get_poulailler(cur, self.fermier_id)
+        poule = poulailler[self.poule_place]
+        production = poule['production']
+        if old_production != production:
+            return await interaction.followup.send("TRICHEUR TRICHEUR TRICHEUR", ephemeral=True)
+        price = get_total_price_for_upgrade(asked_lvl, production)
+        if get_fermier_oeufs(cur, self.fermier_id) < price:
             return await interaction.followup.edit_message(
                 message_id=interaction.message.id,
                 content="T'as pas assez d'argent boursemolle",
@@ -659,15 +741,15 @@ class Lvl_Up_Poule_Button(discord.ui.View):
                 view=BackToPoulailler(self.fermier_id, self.poule_place),
             )
         else:
-            lose_money(cur, con, self.fermier_id, production*115)
-            augmente_production_poule(cur, con, self.poule["trade_id"])
+            lose_money(cur, con, self.fermier_id, price)
+            augmente_production_poule(cur, con, self.poule["trade_id"], asked_lvl)
 
             embed = discord.Embed(
                 title=f"Poule améliorée"
             )
             embed.add_field(
                 name="Nouvelle production:",
-                value=f"**{self.poule['production']+1}**",
+                value=f"**{self.poule['production']+asked_lvl}**",
             )
             await interaction.followup.edit_message(
                 message_id=interaction.message.id,
@@ -676,6 +758,16 @@ class Lvl_Up_Poule_Button(discord.ui.View):
                 view=BackToPoulailler(self.fermier_id, self.poule_place),
             )
 
+def get_total_price_for_upgrade(level, prod):
+    total_price = 0
+    for i in range(1, level+1):
+        total_price += (prod+i-1)*115
+    return total_price
+
+class Upgrade_Poule_View(discord.ui.View):
+      def __init__(self, fermier_id, avatar, poule, poule_place):
+        super().__init__()
+        self.add_item(Upgrade_Poule_Select(fermier_id, avatar, poule, poule_place))
 
 class BackToPoulailler(discord.ui.View):
     """
