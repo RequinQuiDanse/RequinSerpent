@@ -29,10 +29,12 @@ import commands.puissance4
 import commands.rap_citation
 import commands.joueurs_commentaires
 import commands.general_quizz
-import commands.llama
 # import commands.ia_img
 from commands.poulytopia import main_commands
+import commands.champion
+
 if os.name =="nt":
+    import commands.llama
     # import commands.ia_img
     import commands.not_commands.fool
     import commands.not_commands.embed

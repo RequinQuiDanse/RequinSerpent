@@ -53,15 +53,16 @@ class PromptModal(discord.ui.Modal, title='Prompt'):
                     if time.time() - atime >1:
                         atime = time.time()
                         if first:
-                            await interaction.followup.send("Prompt en chargement...", ephemeral=True)
+                            await interaction.followup.send(f"Prompt en chargement... \n>{prompt}", ephemeral=True)
                             msg = await interaction.channel.send(content=total_resp)
                             first = False
                         else:
                             await msg.edit(content = total_resp)
+                await msg.edit(content = total_resp)
 
 
             except:
-                await interaction.followup.send(content=f"Lancement du chatbot... Refais le prompt dans qlq secondes", ephemeral=True)
+                await interaction.followup.send(content=f"Lancement du chatbot... Refais le prompt dans qlq secondes. \n{prompt}", ephemeral=True)
 
                 subprocess.run('ubuntu run systemctl stop ollama')
                 server_command = "ubuntu run ollama serve"

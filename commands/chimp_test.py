@@ -173,6 +173,7 @@ async def chimp_testscore(interaction: discord.Interaction):
     with open(file, mode='r') as csv_file:
         csv_reader = csv.DictReader(csv_file)
         embed = discord.Embed(title="Scores du Chimp Test")
+        embed.set_footer(text='Le score dépend de jusqu\'où tu vas et du temps que tu as mis')
         for row in csv_reader:
             embed.add_field(name=f"{row['name']}, score = {row['score']}",
                             value=f"= {row['points']} points en {row['time']} secondes.")

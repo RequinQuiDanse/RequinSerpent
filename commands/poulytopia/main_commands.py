@@ -336,7 +336,7 @@ class Poulailler_Buttons(discord.ui.View):
         embed.add_field(name="Avantage",
                         value="Augmente de 1 la taille de ton poulailler")
         embed.add_field(name="Désavantage:",
-                        value=f"Prix entretien sur 24h:\nMaintenant: {round(24 * fermier_lvl * (int(fermier_lvl/8)**2))}🥚\nAprès:{round(24 * (fermier_lvl+1) * (int((fermier_lvl+1)/8)**2))}🥚")
+                        value=f"Prix entretien sur 24h:\nMaintenant: {round(24 * fermier_lvl * (fermier_lvl/8)**2)}🥚\nAprès:{round(24 * (fermier_lvl+1) * ((fermier_lvl+1)/8)**2)}🥚")
         await interaction.followup.edit_message(message_id=interaction.message.id, embed=embed, view=Lvl_Up_Button(fermier_lvl, self.fermier_id, self.avatar, self.poule_place), attachments=[]
                                                 )
 
@@ -587,8 +587,8 @@ def embed_for_stats(fermier_id, avatar):
     embed = discord.Embed(title="Stats du poulailler")
     embed.add_field(name="Nombre de 🐔", value=str(
         poulailler_data['amount']))
-    embed.add_field(name="Valeur des poules",
-                    value=str(poulailler_data['value'])+"🥚")
+    # embed.add_field(name="Valeur des poules",
+    #                 value=str(poulailler_data['value'])+"🥚")
     embed.add_field(name="Production des poules sur 24 heures",
                     value=str(poulailler_data['production']*24)+"🥚")
     # round(24 * 28 * (int(28/8)**2)))
@@ -935,7 +935,7 @@ class ArgentSelect(discord.ui.Select):
 
         options = [
             discord.SelectOption(
-                label=i*100)
+                label=i*1000)
             for i in range(24)
         ]
 

@@ -194,7 +194,11 @@ def get_last_harvest(cur, con, fermier_id, now):
     hours = diff//3600
     # round(hours * fermier_lvl * (int(fermier_lvl/8)**2))
     # round(hours * fermier_lvl * (fermier_lvl/8)**2)
-    taxes = round(hours * fermier_lvl * (fermier_lvl/8)**2)
+    if fermier_lvl>10:
+        taxes = round(hours * fermier_lvl * (fermier_lvl/8)**2)
+    else:
+        taxes = 0
+        
     # poules tier 1
     try:
         res = do_sql(cur, f"SELECT poulaillers.production, poulaillers.last_harvest, poulaillers.poule_name FROM poulaillers JOIN poules ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} AND poules.tier = 1 ORDER BY last_harvest").fetchall()
