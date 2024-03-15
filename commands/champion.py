@@ -14,7 +14,7 @@ def create_connection(path):
     return connection
 
 
-con = create_connection(path=r"/home/adanamalatcha/Documents/nsi/RequinSerpent2/RequinSerpent/2024-total-database.db")
+con = create_connection(path=r"D:\code\data_analyse/2024-total-database.db")
 cur = con.cursor()
 
 def do_sql(sql):
