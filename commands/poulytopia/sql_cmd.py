@@ -1,6 +1,7 @@
 import sqlite3
 from sqlite3 import Error
 from datetime import datetime, timedelta
+import random
 
 path = "commands/poulytopia/poulytopia.db"
 def create_connection(path):
@@ -40,7 +41,7 @@ def get_poulailler(cur, fermier_id):
     return: dictionnaire poule_name, price, production, path, trade_id, family
     """
     res = do_sql(
-        cur, f"SELECT poules.poule_name, poules.price, poulaillers.production, poulaillers.path, poulaillers.trade_id, poules.family, poules.tier FROM poules JOIN poulaillers ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id}").fetchall()
+        cur, f"SELECT poules.poule_name, poules.price, poulaillers.production, poulaillers.path, poulaillers.trade_id, poules.family, poules.tier FROM poules JOIN poulaillers ON poules.poule_name = poulaillers.poule_name WHERE fermier_id = {fermier_id} ORDER BY tier DESC, family").fetchall()
     
     poules_dict = []
     for poule in res:
@@ -88,7 +89,12 @@ def get_random_poule(cur, fermier_id):
         if tier < 2:
             res = do_sql(cur, f"SELECT * FROM poules WHERE tier = 1 ORDER BY RANDOM() LIMIT 1;").fetchone()
         else:
-            res = do_sql(cur, f"SELECT * FROM poules ORDER BY RANDOM() LIMIT 1;").fetchone()
+            randchance = random.randint(0,100)
+            if randchance > 35:
+                res = do_sql(cur, f"SELECT * FROM poules WHERE tier = 2 ORDER BY RANDOM() LIMIT 1;").fetchone()
+            else:
+                res = do_sql(cur, f"SELECT * FROM poules WHERE tier = 1 ORDER BY RANDOM() LIMIT 1;").fetchone()
+                
         count = do_sql(cur, f"SELECT COUNT(*) FROM poulaillers WHERE poule_name = '{res[0]}' AND fermier_id = {fermier_id}").fetchone()[0]
     res = {
         "poule_name": res[0],

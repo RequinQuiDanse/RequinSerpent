@@ -14,7 +14,7 @@ def create_connection(path):
     return connection
 
 
-con = create_connection(path=r"D:\code\data_analyse/2024-total-database.db")
+con = create_connection(path=r"2024-total-database.db")
 cur = con.cursor()
 
 def do_sql(sql):
@@ -54,7 +54,7 @@ class LaneSelect(discord.ui.Select):
     """
     """
     def __init__(self, champion):
-        self.champion = champion.capitalize()
+        self.champion = champion.title()
         options = [discord.SelectOption(label=names     ) for names in all_db_names]
         for all_lane in ['top', 'jungle', 'mid', 'adc', 'support']:
             options.append(discord.SelectOption(
@@ -73,9 +73,9 @@ class LaneSelect(discord.ui.Select):
             db = all_db[self.values[1]]
             lane = self.values[0].lower()
 
-        print('SELECT champion, '+self.champion.replace(' ', '_')+f' FROM {db["bans"]} ORDER BY '+self.champion.replace(' ', '_')+' DESC LIMIT 15')
+        print('SELECT champion, \''+self.champion.replace(' ', '_')+f'\' FROM {db["bans"]} ORDER BY '+self.champion.replace(' ', '_')+' DESC LIMIT 15')
         try:
-            bans = do_sql(sql='SELECT champion, '+self.champion.replace(' ', '_')+f' FROM {db["bans"]} ORDER BY '+self.champion.replace(' ', '_')+' DESC LIMIT 15').fetchall()
+            bans = do_sql(sql='SELECT champion, '+self.champion.replace(' ', '_').replace("'","_")+f' FROM {db["bans"]} ORDER BY '+self.champion.replace(' ', '_').replace("'","_")+' DESC LIMIT 15').fetchall()
         except:
             return await interaction.response.send_message("Champion inconnu", ephemeral=True)
 
