@@ -32,7 +32,7 @@ import commands.general_quizz
 # import commands.ia_img
 from commands.poulytopia import main_commands
 import commands.champion
-
+import commands.comptes
 if os.name =="nt":
     import commands.llama
     # import commands.ia_img
@@ -79,6 +79,7 @@ async def on_ready():
                 activ = '/' + str(random.choice(commands)).replace("commands/","").replace(".py","")
                 await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.competing, name=activ))
             await asyncio.sleep(150)
+
 
 
 with open("token.txt") as f:

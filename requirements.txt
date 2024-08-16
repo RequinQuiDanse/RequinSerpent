@@ -11,3 +11,5 @@ requests
 discord.py[voice]
 yt_dlp
 Unidecode
+plotly
+kaleido

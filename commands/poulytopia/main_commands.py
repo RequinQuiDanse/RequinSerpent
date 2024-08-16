@@ -195,6 +195,41 @@ class Poulailler_Buttons(discord.ui.View):
         self.fermier_id = fermier_id
         self.avatar = avatar
 
+    @discord.ui.button(label="⏪", style=discord.ButtonStyle.blurple)
+    async def back_family(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        if self.fermier_id != interaction.user.id:
+            return
+        await interaction.response.defer()
+        poule = self.poulailler[self.poule_place]
+        poule_family = poule['family']
+        if poule_family != None:
+            fermier_family_disctinct, fermier_family_not_disctinct = get_fermier_families(cur, self.fermier_id)
+            actual_family_position_disctinct = fermier_family_disctinct.index(poule_family)
+            next_family = fermier_family_disctinct[(actual_family_position_disctinct-1)%len(fermier_family_disctinct)]
+            next_family_position_not_disctinct = fermier_family_not_disctinct.index(next_family)
+            # print(poule_family)
+            # print(fermier_family_disctinct)
+            # print(fermier_family_not_disctinct)
+            # print(actual_family_position_disctinct)
+            # print(next_family_position_not_disctinct)
+
+            self.poule_place = next_family_position_not_disctinct
+        else:
+            self.poule_place -= 1
+
+        poule = self.poulailler[self.poule_place]
+
+        embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[
+                                self.poule_place, self.poulailler_data['amount']], avatar=interaction.user.avatar, fermier_id=self.fermier_id)
+
+        await interaction.followup.edit_message(
+            message_id=interaction.message.id,
+            attachments=[file],
+            embed=embed,
+            view=self,
+        )
+            
+
     @discord.ui.button(label="⬅", style=discord.ButtonStyle.blurple)
     async def back(self, interaction: discord.Interaction, buttons: discord.ui.Button):
         if self.fermier_id != interaction.user.id:
@@ -223,6 +258,40 @@ class Poulailler_Buttons(discord.ui.View):
         self.poule_place += 1
         if self.poule_place >= len(self.poulailler):
             self.poule_place = 0
+        poule = self.poulailler[self.poule_place]
+
+        embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[
+                                   self.poule_place, self.poulailler_data['amount']], avatar=interaction.user.avatar, fermier_id=self.fermier_id)
+
+        await interaction.followup.edit_message(
+            message_id=interaction.message.id,
+            attachments=[file],
+            embed=embed,
+            view=self,
+        )
+
+    @discord.ui.button(label="⏩", style=discord.ButtonStyle.blurple)
+    async def next_family(self, interaction: discord.Interaction, buttons: discord.ui.Button):
+        if self.fermier_id != interaction.user.id:
+            return
+        await interaction.response.defer()
+        poule = self.poulailler[self.poule_place]
+        poule_family = poule['family']
+        if poule_family != None:
+            fermier_family_disctinct, fermier_family_not_disctinct = get_fermier_families(cur, self.fermier_id)
+            actual_family_position_disctinct = fermier_family_disctinct.index(poule_family)
+            next_family = fermier_family_disctinct[(actual_family_position_disctinct+1)%len(fermier_family_disctinct)]
+            next_family_position_not_disctinct = fermier_family_not_disctinct.index(next_family)
+            # print(poule_family)
+            # print(fermier_family_disctinct)
+            # print(fermier_family_not_disctinct)
+            # print(actual_family_position_disctinct)
+            # print(next_family_position_not_disctinct)
+
+            self.poule_place = next_family_position_not_disctinct
+        else:
+            self.poule_place += 1
+
         poule = self.poulailler[self.poule_place]
 
         embed, file = create_embed(title=f"**{poule['poule_name']}**", poule=poule, poule_place=[
@@ -916,8 +985,8 @@ class AcceptPari(discord.ui.View):
         if interaction.user.id != self.adversaires[1].id:
             return
 
-        register_pari(cur, con, self.adversaires[0].id, datetime.now().replace(minute=0, second=0, microsecond=0))
-        register_pari(cur, con, self.adversaires[1].id, datetime.now().replace(minute=0, second=0, microsecond=0))
+        # register_pari(cur, con, self.adversaires[0].id, datetime.now().replace(minute=0, second=0, microsecond=0))
+        # register_pari(cur, con, self.adversaires[1].id, datetime.now().replace(minute=0, second=0, microsecond=0))
         plateau = f"**🔴 {self.adversaires[0].name} VERSUS {self.adversaires[1].name} 🟡**\n\n"
         plateau += f"\t{puissance4.LETTERS}\n\t{puissance4.BLACK_CASE*7}\n\t{puissance4.BLACK_CASE*7}\n\t{puissance4.BLACK_CASE*7}\n\t{puissance4.BLACK_CASE*7}\n\t{puissance4.BLACK_CASE*7}\n\t{puissance4.BLACK_CASE*7}"
 
@@ -983,7 +1052,7 @@ class ChooseWhichPari(discord.ui.View):
 
         embed = discord.Embed(title=f"{self.adversaires[0].name} défie {self.adversaires[1].name}",
                               description=f"{self.adversaires[1].name} va-t-il se défiler??")
-        await interaction.followup.send(embed=embed, view=ParierSelectView(self.adversaires, []))
+        await interaction.response.send(embed=embed, view=ParierSelectView(self.adversaires, []))
 
     @discord.ui.button(label="Parier un tirage gratuit", style=discord.ButtonStyle.green)
     async def defi_tirage(

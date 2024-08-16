@@ -271,16 +271,23 @@ def register_market(cur, con, time):
     time = time.replace(hour=18, minute=0, second=0, microsecond=0)
     
     do_sql(cur, "DELETE FROM market")
-    temp_poules = do_sql(cur, f"SELECT * FROM poules WHERE tier = 1 ORDER BY RANDOM() LIMIT 8;").fetchall()
+    temp_poules = do_sql(cur, f"SELECT * FROM poules WHERE tier = 1 ORDER BY RANDOM() LIMIT 3;").fetchall()
     poules = []
     i=0
-    while len(poules)<4:
+    while len(poules)<3:
         poules.append(temp_poules[i])
         i+=1
     for poule in poules:
         do_sql(cur, f"INSERT INTO market VALUES ('{poule[0]}','{time}')")
-    poule_2 = do_sql(cur, f"SELECT * FROM poules ORDER BY RANDOM() LIMIT 1;").fetchall()[0][0]
-    do_sql(cur, f"INSERT INTO market VALUES ('{poule_2}','{time}')")
+
+    temp_poules_2 = do_sql(cur, f"SELECT * FROM poules WHERE tier = 2 ORDER BY RANDOM() LIMIT 2;").fetchall()
+    poules_2 = []
+    i=0
+    while len(poules_2)<2:
+        poules_2.append(temp_poules_2[i])
+        i+=1
+    for poules in poules_2:
+        do_sql(cur, f"INSERT INTO market VALUES ('{poules[0]}','{time}')")
     con.commit()
     return
 
@@ -370,3 +377,13 @@ def get_fermiers_data(cur):
 def augmente_production_poule(cur, con, trade_id, level):
     do_sql(cur, f"UPDATE poulaillers SET production = production + {level} WHERE trade_id = {trade_id}")
     con.commit()
+
+def get_fermier_families(cur, fermier_id):
+    """
+    renvoie toutes les familles du fermier afin de naviguer d'une famille à l'autre dans la commande "poulailler"
+    """
+    distinct = do_sql(cur, f"SELECT DISTINCT poules.family FROM poulaillers JOIN poules ON poulaillers.poule_name = poules.poule_name WHERE poulaillers.fermier_id = '{fermier_id}' ORDER BY poules.family").fetchall()
+    distinct = [el[0] for el in distinct]
+    not_distinct = do_sql(cur, f"SELECT poules.family FROM poulaillers JOIN poules ON poulaillers.poule_name = poules.poule_name WHERE poulaillers.fermier_id = '{fermier_id}' ORDER BY poules.family").fetchall()
+    not_distinct = [el[0] for el in not_distinct]
+    return distinct, not_distinct

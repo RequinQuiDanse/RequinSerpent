@@ -67,16 +67,15 @@ class Power4_Buttons(discord.ui.View):
 
     async def interaction_check(self, interaction: discord.Interaction, /):
         await interaction.response.defer()
-        self.tour += 1
         if self.tour % 2 == 0:
             if interaction.user.id != self.adversaire_id:
-                self.tour -= 1
+                # self.tour -= 1
                 await interaction.response.send_message(content="Pas ton tour", ephemeral=True)
                 return
             color = YELLOW_MARK
         else:
             if interaction.user.id != self.user_id:
-                self.tour -= 1
+                # self.tour -= 1
                 await interaction.response.send_message(content="Pas ton tour", ephemeral=True)
                 return
             color = RED_MARK
@@ -89,6 +88,9 @@ class Power4_Buttons(discord.ui.View):
 
         i = 0
         for element in self.board[colomn]:
+            if i > 5 :
+                await interaction.response.send_message(content="Tu sors du plateau", ephemeral=True)
+                return
             if element != BLACK_CASE:
                 self.board[colomn][i-1] = color
                 # line = i-1
@@ -97,7 +99,9 @@ class Power4_Buttons(discord.ui.View):
                 self.board[colomn][i] = color
                 # line = i
                 break
+
             i += 1
+        self.tour += 1
 
         self.plateau = f"**🔴 {self.user_name} VERSUS {self.adversaire_name} 🟡**\n\n"
 
